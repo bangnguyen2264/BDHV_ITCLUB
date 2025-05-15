@@ -1,0 +1,88 @@
+server:
+  port: 8888
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "http://localhost:8888/login/oauth2/code/google"
+            scope:
+              - email
+              - profile
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            redirect-uri: "http://localhost:8888/login/oauth2/code/github"
+            scope:
+              - user:email
+        provider:
+          github:
+            authorization-uri: https://github.com/login/oauth/authorize
+            token-uri: https://github.com/login/oauth/access_token
+            user-info-uri: https://api.github.com/user
+            user-name-attribute: login
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bdhv
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ngtbang2264.dev@gmail.com
+    password: "orflmlgpxxuwmvli"
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+app:
+  security:
+    jwt:
+      access-expires-at: 9000000               # 2.5 giờ
+      refresh-expires-at: 2592000000           # 30 ngày
+      prefix: "Bearer "
+      auth-header: "Authorization"
+      access-secret: ${JWT_ACCESS_SECRET}
+      refresh-secret: ${JWT_REFRESH_SECRET}
+
+
+  api:
+    base-url-api: http://localhost:8888
+    title: BHDV
+    version: 1.0.0
+    contact-email: ngtbang2264.dev@gmail.com
+    swagger:
+      enable: true
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    disable-swagger-default-url: true
+  api-docs:
+    enabled: true
+    path: /v3/api-docs

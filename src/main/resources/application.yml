@@ -1,0 +1,3 @@
+spring:
+  profiles:
+    active: dev # Môi tr??ng m?c ??nh (có th? là dev, prod, test)
