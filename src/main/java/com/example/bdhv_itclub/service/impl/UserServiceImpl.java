@@ -5,7 +5,7 @@ import com.example.bdhv_itclub.dto.reponse.UserResponse;
 import com.example.bdhv_itclub.dto.request.UserRequest;
 import com.example.bdhv_itclub.dto.request.UserFilterRequest;
 import com.example.bdhv_itclub.entity.User;
-import com.example.bdhv_itclub.repositorry.UserRepository;
+import com.example.bdhv_itclub.repository.UserRepository;
 import com.example.bdhv_itclub.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,13 +13,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public ApiResponse<UserResponse> getAll(UserFilterRequest filter, Pageable pageable) {
+    public ApiResponse<List<UserResponse>> getAll(UserFilterRequest filter, Pageable pageable) {
         Page<UserResponse> userPage = userRepository.findAll((root, query, cb) -> {
             var predicates = cb.conjunction();
 
@@ -33,7 +35,7 @@ public class UserServiceImpl implements UserService {
 
             return predicates;
         }, pageable).map(UserResponse::fromUser);
-        return ApiResponse.<UserResponse>builder()
+        return ApiResponse.<List<UserResponse>>builder()
                 .status(HttpStatus.OK.value())
                 .message("Success")
                 .data(userPage.getContent())
@@ -47,13 +49,13 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public UserResponse getById(String id) {
+    public UserResponse getById(Integer id) {
         User user = findUserById(id);
         return UserResponse.fromUser(user);
     }
 
     @Override
-    public UserResponse update(String id, UserRequest request) {
+    public UserResponse update(Integer id, UserRequest request) {
         User user = findUserById(id);
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
@@ -62,13 +64,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void disableUser(String id) {
+    public void disableUser(Integer id) {
         User user = findUserById(id);
         user.setEnabled(false);
         userRepository.save(user);
     }
 
-    private User findUserById(String id) {
+    private User findUserById(Integer id) {
         return userRepository.findById(id).orElseThrow(()-> new  IllegalArgumentException("User with id "+id+" not found"));
     }
 }

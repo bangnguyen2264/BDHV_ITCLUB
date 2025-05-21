@@ -3,14 +3,13 @@ package com.example.bdhv_itclub.service.impl;
 import com.example.bdhv_itclub.dto.reponse.RoleResponse;
 import com.example.bdhv_itclub.dto.request.RoleFilterRequest;
 import com.example.bdhv_itclub.entity.Role;
-import com.example.bdhv_itclub.repositorry.RoleRepository;
+import com.example.bdhv_itclub.repository.RoleRepository;
 import com.example.bdhv_itclub.service.RoleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class RoleServiceImpl implements RoleService {
@@ -33,7 +32,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponse getById(Long id) {
+    public RoleResponse getById(Integer id) {
         Role role = roleRepository.findById(id).orElseThrow(()-> new IllegalArgumentException("Role with id " + id + " not found"));
         return RoleResponse.from(role);
     }
@@ -49,7 +48,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleResponse updateRole(Long id,String name) {
+    public RoleResponse updateRole(Integer id,String name) {
         Role role = roleRepository.findById(id).orElseThrow(()-> new IllegalArgumentException("Role with id " + id + " not found"));
         role.setName(name);
         roleRepository.save(role);
@@ -57,7 +56,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public void deleteRole(Long id) {
+    public void deleteRole(Integer id) {
         Role role = roleRepository.findById(id).orElseThrow(()-> new IllegalArgumentException("Role with id " + id + " not found"));
         roleRepository.delete(role);
     }

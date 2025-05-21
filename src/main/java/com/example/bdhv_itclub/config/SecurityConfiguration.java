@@ -1,12 +1,11 @@
 package com.example.bdhv_itclub.config;
 
-
-
 import com.example.bdhv_itclub.service.impl.Oauth2UserService;
 import com.example.bdhv_itclub.service.impl.UserDetailsServiceImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,10 +24,9 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -39,18 +37,17 @@ public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsService;
-    private final Oauth2UserService  oauth2UserService;
+    private final Oauth2UserService oauth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
-    private final  ClientRegistrationRepository clientRegistrationRepository;
-
-
+    private final ClientRegistrationRepository clientRegistrationRepository;
+    @Qualifier("corsConfigurationSource") // Thêm dòng này 👇
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Các endpoint công khai
                         .requestMatchers(getPublicEndpoints()).permitAll()
                         .requestMatchers("/users/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/roles/**").hasAuthority("ROLE_ADMIN")
@@ -63,22 +60,12 @@ public class SecurityConfiguration {
                         .userInfoEndpoint(info -> info.userService(oauth2UserService))
                         .successHandler(oAuth2SuccessHandler)
                         .failureHandler(oAuth2FailureHandler)
-
                 )
-                .cors(cors -> cors
-                        .configurationSource(request -> {
-                            CorsConfiguration cfg = new CorsConfiguration();
-                            cfg.setAllowedOrigins(Collections.singletonList("*"));
-                            cfg.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-                            cfg.setAllowedHeaders(List.of("*"));
-                            return cfg;
-                        })
-                )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(authenticationEntryPoint())
                         .accessDeniedHandler(accessDeniedHandler())
                 )
-
                 .userDetailsService(userDetailsService)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -109,6 +96,7 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
+
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (request, response, authException) -> {
@@ -117,7 +105,7 @@ public class SecurityConfiguration {
             new ObjectMapper().writeValue(response.getOutputStream(),
                     Map.of(
                             "status", 401,
-                            "message", "User not sign in or token expired",
+                            "message", "User not signed in or token expired",
                             "path", request.getRequestURI()
                     )
             );
@@ -140,9 +128,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver(
-            ClientRegistrationRepository repo) {
-
+    public OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver(ClientRegistrationRepository repo) {
         DefaultOAuth2AuthorizationRequestResolver resolver =
                 new DefaultOAuth2AuthorizationRequestResolver(repo, "/oauth2/authorization");
 
@@ -154,5 +140,4 @@ public class SecurityConfiguration {
 
         return resolver;
     }
-
 }

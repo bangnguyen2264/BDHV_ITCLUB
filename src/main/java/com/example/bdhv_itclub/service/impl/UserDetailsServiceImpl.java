@@ -1,6 +1,6 @@
 package com.example.bdhv_itclub.service.impl;
 
-import com.example.bdhv_itclub.repositorry.UserRepository;
+import com.example.bdhv_itclub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

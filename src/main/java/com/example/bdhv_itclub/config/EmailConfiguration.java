@@ -1,6 +1,6 @@
 package com.example.bdhv_itclub.config;
 
-import com.example.bdhv_itclub.entity.EmailProperties;
+import com.example.bdhv_itclub.properties.EmailProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

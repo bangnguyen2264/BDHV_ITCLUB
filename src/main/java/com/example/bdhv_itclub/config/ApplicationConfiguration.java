@@ -2,8 +2,8 @@ package com.example.bdhv_itclub.config;
 
 import com.example.bdhv_itclub.entity.Role;
 import com.example.bdhv_itclub.entity.User;
-import com.example.bdhv_itclub.repositorry.RoleRepository;
-import com.example.bdhv_itclub.repositorry.UserRepository;
+import com.example.bdhv_itclub.repository.RoleRepository;
+import com.example.bdhv_itclub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -35,8 +35,7 @@ public class ApplicationConfiguration {
             }
             log.info("Roles initialized successfully");
 
-            Role deliverRole = roleRepository.findById(3L).orElseThrow();
-            Role adminRole = roleRepository.findById(2L).orElseThrow();
+            Role adminRole = roleRepository.findByName("ROLE_USER").orElseThrow();
 
             if (!userRepository.existsByEmail("admin@gmail.com")) {
                 userRepository.save(

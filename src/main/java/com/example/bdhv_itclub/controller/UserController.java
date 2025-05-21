@@ -14,6 +14,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<UserResponse>> getAllUsers(
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getAllUsers(
             @ParameterObject() UserFilterRequest filter,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int entry
@@ -39,14 +41,14 @@ public class UserController {
 
     // Lấy thông tin người dùng theo ID
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable String id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(userService.getById(id));
     }
 
     // Cập nhật thông tin người dùng
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
-            @PathVariable String id,
+            @PathVariable Integer id,
             @RequestBody UserRequest request
     ) {
         return ResponseEntity.ok(userService.update(id, request));
@@ -54,7 +56,7 @@ public class UserController {
 
     // Vô hiệu hóa người dùng
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> disableUser(@PathVariable String id) {
+    public ResponseEntity<Void> disableUser(@PathVariable Integer id) {
         userService.disableUser(id);
         return ResponseEntity.noContent().build();
     }

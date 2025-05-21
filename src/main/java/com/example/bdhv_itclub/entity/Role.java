@@ -16,7 +16,7 @@ import java.util.List;
 public class Role extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
     @Column(unique = true)
     private String name;
     @OneToMany(mappedBy = "role")

@@ -1,4 +1,4 @@
-package com.example.bdhv_itclub.entity;
+package com.example.bdhv_itclub.properties;
 
 import lombok.Getter;
 import lombok.Setter;

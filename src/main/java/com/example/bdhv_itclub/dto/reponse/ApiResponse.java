@@ -14,7 +14,7 @@ import java.util.List;
 public class ApiResponse<T> {
     private int status;
     private String message;
-    private List<T> data;
+    private T data;
     private int page;
     private int entry;
     private long total;

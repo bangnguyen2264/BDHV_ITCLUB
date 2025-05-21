@@ -52,7 +52,7 @@ public class RoleController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<RoleResponse> getRoleById(
-            @Parameter(description = "ID của vai trò cần lấy") @PathVariable Long id
+            @Parameter(description = "ID của vai trò cần lấy") @PathVariable Integer id
     ) {
         return ResponseEntity.ok(roleService.getById(id));
     }
@@ -76,7 +76,7 @@ public class RoleController {
     })
     @PutMapping("/{id}")
     public ResponseEntity<RoleResponse> updateRole(
-            @Parameter(description = "ID của vai trò cần cập nhật") @PathVariable Long id,
+            @Parameter(description = "ID của vai trò cần cập nhật") @PathVariable Integer id,
             @Parameter(description = "Tên mới của vai trò") @RequestBody String name
     ) {
         return ResponseEntity.ok(roleService.updateRole(id, name));
@@ -89,7 +89,7 @@ public class RoleController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRole(
-            @Parameter(description = "ID của vai trò cần xoá") @PathVariable Long id
+            @Parameter(description = "ID của vai trò cần xoá") @PathVariable Integer id
     ) {
         roleService.deleteRole(id);
         return ResponseEntity.noContent().build();

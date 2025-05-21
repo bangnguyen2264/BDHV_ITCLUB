@@ -7,8 +7,8 @@ logging:
 spring:
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 5MB
+      max-file-size: 50MB
+      max-request-size: 50MB
   security:
     oauth2:
       client:
@@ -40,7 +40,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
@@ -52,7 +52,7 @@ spring:
     host: smtp.gmail.com
     port: 587
     username: ngtbang2264.dev@gmail.com
-    password: "orflmlgpxxuwmvli"
+    password: ${MAIL_PASSWORD_SERVER}
     properties:
       mail:
         smtp:
@@ -63,8 +63,8 @@ spring:
 app:
   security:
     jwt:
-      access-expires-at: 9000000               # 2.5 giờ
-      refresh-expires-at: 2592000000           # 30 ngày
+      access-expires-at: 3600000        # 1 giờ
+      refresh-expires-at: 604800000     # 7 ngày
       prefix: "Bearer "
       auth-header: "Authorization"
       access-secret: ${JWT_ACCESS_SECRET}
@@ -78,6 +78,19 @@ app:
     contact-email: ngtbang2264.dev@gmail.com
     swagger:
       enable: true
+payment:
+  bank_branch: ""
+  bank_number: ""
+  bank_username: ""
+  bank_password: ""
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME}
+  api_key: ${CLOUDINARY_API_KEY}
+  api_secret: ${CLOUDINARY_API_SECRET}
+
+vn_pay:
+  tmn_code: ${VNP_TMN_CODE}
+  secret_key: ${VNP_SECRET_KEY}
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

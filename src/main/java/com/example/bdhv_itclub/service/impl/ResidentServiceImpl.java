@@ -4,7 +4,7 @@ import com.example.bdhv_itclub.dto.reponse.UserResponse;
 import com.example.bdhv_itclub.dto.request.ChangePasswordRequest;
 import com.example.bdhv_itclub.dto.request.UserRequest;
 import com.example.bdhv_itclub.entity.User;
-import com.example.bdhv_itclub.repositorry.UserRepository;
+import com.example.bdhv_itclub.repository.UserRepository;
 import com.example.bdhv_itclub.service.ResidentService;
 import com.example.bdhv_itclub.utils.UserUtils;
 import lombok.RequiredArgsConstructor;

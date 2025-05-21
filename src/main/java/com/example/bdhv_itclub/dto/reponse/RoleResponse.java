@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 public class RoleResponse {
-    private Long id;
+    private Integer id;
     private String name;
 
     public static RoleResponse from(Role role) {

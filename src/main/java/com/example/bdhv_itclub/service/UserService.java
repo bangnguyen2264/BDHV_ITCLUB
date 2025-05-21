@@ -7,9 +7,11 @@ import com.example.bdhv_itclub.dto.request.UserFilterRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface UserService {
-    ApiResponse<UserResponse> getAll(UserFilterRequest filter, Pageable pageable);
-    UserResponse getById(String id);
-    UserResponse update(String id, UserRequest request);
-    void disableUser(String id);
+    ApiResponse<List<UserResponse>> getAll(UserFilterRequest filter, Pageable pageable);
+    UserResponse getById(Integer id);
+    UserResponse update(Integer id, UserRequest request);
+    void disableUser(Integer id);
 }

@@ -1,17 +1,13 @@
 package com.example.bdhv_itclub.service.impl;
 
-import com.example.bdhv_itclub.entity.Role;
-import com.example.bdhv_itclub.entity.User;
-import com.example.bdhv_itclub.repositorry.RoleRepository;
-import com.example.bdhv_itclub.repositorry.UserRepository;
+import com.example.bdhv_itclub.repository.RoleRepository;
+import com.example.bdhv_itclub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -21,7 +17,6 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
