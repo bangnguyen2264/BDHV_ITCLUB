@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -88,20 +89,22 @@ public class BlogController {
     @APIResponseMessage("Tạo bài đăng mới")
     public ResponseEntity<?> save(
             @RequestPart(value = "blog") @Valid BlogRequest blogRequest,
-            @RequestParam(value = "blogThumbnail") MultipartFile blogThumbnail
+            @RequestParam(value = "blogThumbnail") MultipartFile blogThumbnail,
+            Authentication authentication
     ) {
-        return new ResponseEntity<>(blogService.save(blogRequest, blogThumbnail), HttpStatus.CREATED);
+        return new ResponseEntity<>(blogService.save(authentication.getName(), blogRequest, blogThumbnail), HttpStatus.CREATED);
     }
 
     // Ok
     @PutMapping("/update/{id}")
-    @APIResponseMessage("Cập nhật bài đăng")
+    @APIResponseMessage("Cập nhật bài đăng (trạng thái đã chuyển sang chưa duyệt)")
     public ResponseEntity<?> update(
             @PathVariable(value = "id") Integer blogId,
             @RequestPart(value = "blog") @Valid BlogRequest blogRequest,
-            @RequestParam(value = "blogThumbnail", required = false) MultipartFile blogThumbnail
+            @RequestParam(value = "blogThumbnail", required = false) MultipartFile blogThumbnail,
+            Authentication authentication
     ) {
-        return ResponseEntity.ok(blogService.update(blogId, blogRequest, blogThumbnail));
+        return ResponseEntity.ok(blogService.update(authentication.getName(), blogId, blogRequest, blogThumbnail));
     }
 
     // Ok

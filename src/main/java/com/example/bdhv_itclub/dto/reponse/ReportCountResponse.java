@@ -29,7 +29,4 @@ public class ReportCountResponse {
 
     @JsonProperty("total_reviews")
     private int totalReviews;
-
-    @JsonProperty("total_incomes")
-    private int totalIncomes;
 }

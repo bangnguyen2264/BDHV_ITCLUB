@@ -13,8 +13,8 @@ public interface BlogService {
     Page<BlogResponse> getAllByUser(Integer userId, int page, int size);
     BlogResponse getBySlug(String slug);
     String checkBlogAuthor(Integer blogId, Integer userId);
-    BlogResponse save(BlogRequest blogRequest, MultipartFile blogThumbnail);
-    BlogResponse update(Integer blogId, BlogRequest blogRequest, MultipartFile blogThumbnail);
+    BlogResponse save(String email, BlogRequest blogRequest, MultipartFile blogThumbnail);
+    BlogResponse update(String email, Integer blogId, BlogRequest blogRequest, MultipartFile blogThumbnail);
     String switchApproved(Integer blogId, boolean isApproved);
     String delete(Integer blogId);
     Page<BlogResponse> search(String keyword, int page, int size);

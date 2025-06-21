@@ -21,7 +21,7 @@ import java.util.List;
 public class ReportServiceImpl implements ReportService {
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private CourseCategoryRepository courseCategoryRepository;
 
@@ -29,7 +29,7 @@ public class ReportServiceImpl implements ReportService {
     private CourseRepository courseRepository;
 
     @Autowired
-    private EnrollmentRepository orderRepository;
+    private EnrollmentRepository enrollmentRepository;
 
     @Autowired
     private ReviewRepository reviewRepository;
@@ -54,8 +54,7 @@ public class ReportServiceImpl implements ReportService {
                 .totalCourses((int) courseRepository.count())
                 .totalBlogs((int) blogRepository.count())
                 .totalQuizzes((int) contestRepository.count())
-                .totalEnrollments((int) orderRepository.count())
-//                .totalIncomes(orderRepository.sumInCome())
+                .totalEnrollments((int) enrollmentRepository.count())
                 .totalReviews((int) reviewRepository.count())
                 .build();
     }
@@ -65,20 +64,20 @@ public class ReportServiceImpl implements ReportService {
     public List<ReportRevenueResponse> getRevenueReport(String period) {
         Instant dateNow = Instant.now();
         Instant dateBefore = getDateBefore(dateNow, period);
-        List<Enrollment> orders = orderRepository.findByEnrolledTimeBetween(dateBefore, dateNow);
-        return createReportRevenueList(dateNow, dateBefore, orders);
+        List<Enrollment> enrollments = enrollmentRepository.findByEnrolledTimeBetween(dateBefore, dateNow);
+        return createReportRevenueList(dateNow, dateBefore, enrollments);
     }
 
     // Ok
     @Override
     public List<ReportRevenueResponse> getCategoryIncomeReport() {
         List<CourseCategory> courseCategories = courseCategoryRepository.findAll().stream().filter(category -> category.getStatus() != CommonStatus.DELETED).toList();
-        List<Enrollment> orders = orderRepository.findAllOrderCategory();
+        List<Enrollment> enrollments = enrollmentRepository.findAllOrderCategory();
         List<ReportRevenueResponse> reportRevenueResponses = new ArrayList<>();
 
         courseCategories.forEach(category -> {
             ReportRevenueResponse reportRevenueResponse = new ReportRevenueResponse(category.getName());
-//            int totalPrice = orders.stream().filter(order -> order.getCourse().getCategory().getName().equals(category.getName())).mapToInt(Enrollment::getTotalPrice).sum();
+//            int totalPrice = enrollments.stream().filter(order -> order.getCourse().getCategory().getName().equals(category.getName())).mapToInt(Enrollment::getTotalPrice).sum();
 //            reportRevenueResponse.setTotalIncome(totalPrice);
             reportRevenueResponses.add(reportRevenueResponse);
         });
@@ -91,15 +90,15 @@ public class ReportServiceImpl implements ReportService {
         Instant dateBefore = getDateBefore(dateNow, period);
 
         List<Course> courses = courseRepository.findAll();
-        List<Enrollment> orders = orderRepository.findByEnrolledTimeBetween(dateBefore, dateNow);
+        List<Enrollment> enrollments = enrollmentRepository.findByEnrolledTimeBetween(dateBefore, dateNow);
         List<ReportRevenueResponse> reportRevenueResponses = new ArrayList<>();
 
         courses.forEach(course -> {
             ReportRevenueResponse reportRevenueResponse = new ReportRevenueResponse(course.getTitle());
-//            int totalPrice = orders.stream().filter(order -> order.getCourse().getTitle().equals(course.getTitle())).mapToInt(Enrollment::getTotalPrice).sum();
+//            int totalPrice = enrollments.stream().filter(order -> order.getCourse().getTitle().equals(course.getTitle())).mapToInt(Enrollment::getTotalPrice).sum();
 //            reportRevenueResponse.setTotalIncome(totalPrice);
-            int orderCount = orders.stream().filter(order -> order.getCourse().getTitle().equals(course.getTitle())).toList().size();
-            reportRevenueResponse.setOrderCount(orderCount);
+            int enrollmentCount = enrollments.stream().filter(order -> order.getCourse().getTitle().equals(course.getTitle())).toList().size();
+            reportRevenueResponse.setEnrollmentCount(enrollmentCount);
             reportRevenueResponses.add(reportRevenueResponse);
         });
         return reportRevenueResponses;
@@ -109,13 +108,13 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<ReportContestResponse> getContestReport() {
         List<Contest> contests = contestRepository.findAll();
-        List<Records> records = recordRepository.findAll();
+        List<Record> records = recordRepository.findAll();
         List<ReportContestResponse> reportContestResponses = new ArrayList<>();
 
         contests.forEach(contest -> {
             ReportContestResponse reportContestResponse = new ReportContestResponse(contest.getTitle());
-            List<Records> filteredRecord = records.stream().filter(record -> record.getContest().getTitle().equals(contest.getTitle())).toList();
-            double totalGrade = filteredRecord.stream().mapToDouble(Records::getGrade).sum();
+            List<Record> filteredRecord = records.stream().filter(record -> record.getContest().getTitle().equals(contest.getTitle())).toList();
+            double totalGrade = filteredRecord.stream().mapToDouble(Record::getGrade).sum();
             float averageGrade = (float) (totalGrade / filteredRecord.size());
             reportContestResponse.setAverageGrade(averageGrade);
             reportContestResponse.setNumberOfJoined(filteredRecord.size());
@@ -125,7 +124,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     // Ok
-    private List<ReportRevenueResponse> createReportRevenueList(Instant now, Instant before, List<Enrollment> orders) {
+    private List<ReportRevenueResponse> createReportRevenueList(Instant now, Instant before, List<Enrollment> enrollments) {
         List<ReportRevenueResponse> reportRevenueResponses = new ArrayList<>();
 
         // Chuyển đổi Instant thành LocalDateTime
@@ -134,7 +133,7 @@ public class ReportServiceImpl implements ReportService {
 
         // Lặp cho đến khi đạt đến endDate
         while (startDate.isBefore(endDate)) {
-            List<Enrollment> filteredOrders = new ArrayList<>();
+            List<Enrollment> filteredEnrollments = new ArrayList<>();
             ReportRevenueResponse reportRevenueResponse = new ReportRevenueResponse();
             LocalDate currentDate = startDate.toLocalDate();
             YearMonth currentMonth = YearMonth.from(startDate);
@@ -142,22 +141,22 @@ public class ReportServiceImpl implements ReportService {
             if (PERIOD_TYPE.equals("DAY")) {
                 DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                 // Tính tổng thu nhập và số đơn hàng cho ngày này
-                filteredOrders = orders.stream().filter(order -> LocalDate.ofInstant(order.getEnrolledTime(), ZoneId.systemDefault()).equals(currentDate)).toList();
+                filteredEnrollments = enrollments.stream().filter(order -> LocalDate.ofInstant(order.getEnrolledTime(), ZoneId.systemDefault()).equals(currentDate)).toList();
                 reportRevenueResponse.setIdentifier(startDate.format(dateFormat));
                 startDate = startDate.plus(1, ChronoUnit.DAYS);
             } else if (PERIOD_TYPE.equals("MONTH")) {
                 DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("MM-yyyy");
                 // Lọc các đơn hàng theo tháng
-                filteredOrders = orders.stream().filter(order -> YearMonth.from(LocalDate.ofInstant(order.getEnrolledTime(), ZoneId.systemDefault())).equals(currentMonth)).toList();
+                filteredEnrollments = enrollments.stream().filter(order -> YearMonth.from(LocalDate.ofInstant(order.getEnrolledTime(), ZoneId.systemDefault())).equals(currentMonth)).toList();
                 reportRevenueResponse.setIdentifier(startDate.format(dateFormat));
                 startDate = startDate.plus(1, ChronoUnit.MONTHS).withDayOfMonth(1);
             }
 
             // Nếu có đơn hàng, cập nhật reportRevenueResponse
-            if (!filteredOrders.isEmpty()) {
-//                int totalIncome = filteredOrders.stream().mapToInt(Enrollment::getTotalPrice).sum();
+            if (!filteredEnrollments.isEmpty()) {
+//                int totalIncome = filteredEnrollments.stream().mapToInt(Enrollment::getTotalPrice).sum();
 //                reportRevenueResponse.setTotalIncome(totalIncome);
-                reportRevenueResponse.setOrderCount(filteredOrders.size());
+                reportRevenueResponse.setEnrollmentCount(filteredEnrollments.size());
             }
             reportRevenueResponses.add(reportRevenueResponse);
         }

@@ -73,6 +73,7 @@ public class ContestController {
     }
 
     // Ok (Lấy bộ đề của cuộc thi đó (không có đáp án))
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/join/{contestId}")
     public ResponseEntity<?> join(
             @PathVariable(value = "contestId") Integer contestId

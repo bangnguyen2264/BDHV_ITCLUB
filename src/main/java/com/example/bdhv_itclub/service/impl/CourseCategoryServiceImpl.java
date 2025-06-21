@@ -52,6 +52,22 @@ public class CourseCategoryServiceImpl implements CourseCategoryService {
                 .toList();
     }
 
+    @Override
+    public List<CourseCategoryDTO> listAllDeletedCourseCategories(String keyword) {
+        List<CourseCategory> courseCategories;
+        if (keyword != null && !keyword.isBlank()) {
+            courseCategories = categoryRepository.search(keyword);
+        } else {
+            courseCategories = categoryRepository.findAll();
+        }
+
+        // Chỉ lọc những category có status = DELETED rồi map sang DTO
+        return courseCategories.stream()
+                .filter(category -> CommonStatus.DELETED.equals(category.getStatus()))
+                .map(category -> modelMapper.map(category, CourseCategoryDTO.class))
+                .toList();
+    }
+
     // Ok
     @Override
     public CourseCategoryDTO create(CourseCategoryDTO categoryRequest) {

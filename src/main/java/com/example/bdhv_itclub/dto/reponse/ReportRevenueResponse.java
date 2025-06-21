@@ -9,13 +9,13 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 public class ReportRevenueResponse {
-    private String identifier; // Tên của bảng đang thống kê
+    private String identifier;
 
     @JsonProperty("total_income")
     private int totalIncome = 0;
 
-    @JsonProperty("order_count")
-    private int orderCount;
+    @JsonProperty("enrollment_count")
+    private int enrollmentCount;
 
     public ReportRevenueResponse(String identifier) {
         this.identifier = identifier;
