@@ -35,7 +35,9 @@ public class ApplicationConfiguration {
             }
             log.info("Roles initialized successfully");
 
-            Role adminRole = roleRepository.findByName("ROLE_USER").orElseThrow();
+            Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElseThrow();
+            Role teacherRole = roleRepository.findByName("ROLE_TEACHER").orElseThrow();
+            Role studentRole = roleRepository.findByName("ROLE_USER").orElseThrow();
 
             if (!userRepository.existsByEmail("admin@gmail.com")) {
                 userRepository.save(
@@ -48,6 +50,20 @@ public class ApplicationConfiguration {
                                 .build()
                 );
                 log.info("Admin initialized successfully");
+            }
+
+            if(!userRepository.existsByEmail("exampleUser@gmail.com")){
+                userRepository.save(
+                        User.builder()
+                                .fullName("Example User")
+                                .email("exampleUser@gmail.com")
+                                .password(passwordEncoder.encode("exampleUser"))
+                                .role(studentRole)
+                                .enabled(true)
+
+                                .build()
+                );
+                log.info("Example user initialized successfully");
             }
 
 
