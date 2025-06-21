@@ -8,6 +8,7 @@ import java.util.List;
 public interface CourseCategoryService {
     CourseCategoryDTO get(Integer categoryId);
     List<CourseCategoryDTO> listAllCourseCategories(String keyword);
+    List<CourseCategoryDTO> listAllDeletedCourseCategories(String keyword);
     CourseCategoryDTO create(CourseCategoryDTO categoryRequest);
     CourseCategoryDTO update(Integer categoryId, CourseCategoryDTO categoryRequest);
     String delete(Integer categoryId);

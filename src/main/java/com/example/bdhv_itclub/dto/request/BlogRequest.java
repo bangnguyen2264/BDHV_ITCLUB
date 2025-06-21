@@ -23,8 +23,4 @@ public class BlogRequest {
 
     @NotEmpty(message = "Nội dung bài đăng không được để trống")
     private String content;
-
-    @NotNull(message = "Mã người dùng không được để trống")
-    @JsonProperty("user_id")
-    private Integer userId;
 }

@@ -34,6 +34,20 @@ public class CourseCategoryController {
     }
 
     // Ok
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/list-all/deleted")
+    @APIResponseMessage("Liệt kê tất cả danh mục khóa học đã bị xóa")
+    public ResponseEntity<List<CourseCategoryDTO>> listAllDeletedCourseCategories(
+            @RequestParam(value = "keyword", required = false, defaultValue = "") String keyword
+    ) {
+        List<CourseCategoryDTO> courseCategories = courseCategoryService.listAllDeletedCourseCategories(keyword);
+        if (courseCategories.size() == 0) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(courseCategories);
+    }
+
+    // Ok
     @GetMapping("/get/{id}")
     @APIResponseMessage("Lấy danh mục khóa học theo mã")
     public ResponseEntity<CourseCategoryDTO> get(
