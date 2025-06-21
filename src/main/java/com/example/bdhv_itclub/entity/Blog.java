@@ -30,7 +30,11 @@ public class Blog {
 
     private Instant createdAt;
 
-    private int view;
+    @Column(name = "is_approved")
+    private boolean isApproved;
+
+    @Column(name = "number_of_views")
+    private int numberOfViews;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

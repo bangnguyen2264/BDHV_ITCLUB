@@ -3,19 +3,15 @@ package com.example.bdhv_itclub.service;
 
 
 import com.example.bdhv_itclub.dto.reponse.FeedbackResponse;
+import com.example.bdhv_itclub.dto.request.FeedbackEmailDTO;
 import com.example.bdhv_itclub.dto.request.FeedbackRequest;
-import com.example.bdhv_itclub.dto.request.SendEmail;
 
 import java.util.List;
 
 public interface FeedbackService {
-    FeedbackResponse save(FeedbackRequest feedbackRequest);
-
     FeedbackResponse get(Integer feedbackId);
-
     List<FeedbackResponse> listAll();
-
+    FeedbackResponse save(FeedbackRequest feedbackRequest);
     String delete(Integer feedbackId);
-
-    String sendMail(SendEmail sendEmail);
+    String sendMail(FeedbackEmailDTO sendEmail);
 }

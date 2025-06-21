@@ -1,7 +1,9 @@
 package com.example.bdhv_itclub.dto.reponse;
 
 
-import com.example.bdhv_itclub.entity.LessonType;
+import com.example.bdhv_itclub.constant.LessonType;
+import com.example.bdhv_itclub.dto.request.LessonTextDTO;
+import com.example.bdhv_itclub.dto.request.VideoDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
@@ -19,7 +21,6 @@ import java.util.List;
 @AllArgsConstructor
 @JsonPropertyOrder({"id", "name", "lesson_type", "created_at", "chapter_id", "video"})
 public class LessonResponse {
-
     private Integer id;
 
     private String name;
@@ -35,9 +36,10 @@ public class LessonResponse {
 
     private VideoDTO video;
 
-    private TextLessonDTO text;
+    private LessonTextDTO text;
 
-    private List<QuizResponse> quizList = new ArrayList<>();
+    private List<QuizResponse> quizzes = new ArrayList<>();
 
-    private int orders;
+    @JsonProperty("lesson_order")
+    private int lessonOrder;
 }

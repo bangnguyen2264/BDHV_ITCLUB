@@ -3,18 +3,19 @@ package com.example.bdhv_itclub.service;
 
 import com.example.bdhv_itclub.dto.reponse.BlogResponse;
 import com.example.bdhv_itclub.dto.request.BlogRequest;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 public interface BlogService {
-    BlogResponse save(BlogRequest blogRequest, MultipartFile img);
-    List<BlogResponse> getAll();
-    List<BlogResponse> getAllByUser(Integer userId);
-    BlogResponse get(String slug);
     String view(Integer blogId);
-    BlogResponse update(Integer blogId, BlogRequest blogRequest, MultipartFile img);
+    Page<BlogResponse> getAllBlogs(int page, int size);
+    Page<BlogResponse> getAllApprovedBlogs(int page, int size);
+    Page<BlogResponse> getAllByUser(Integer userId, int page, int size);
+    BlogResponse getBySlug(String slug);
+    String checkBlogAuthor(Integer blogId, Integer userId);
+    BlogResponse save(BlogRequest blogRequest, MultipartFile blogThumbnail);
+    BlogResponse update(Integer blogId, BlogRequest blogRequest, MultipartFile blogThumbnail);
+    String switchApproved(Integer blogId, boolean isApproved);
     String delete(Integer blogId);
-    String checkAuthorOfBlog(Integer blogId, Integer userId);
-    List<BlogResponse> search(String keyword);
+    Page<BlogResponse> search(String keyword, int page, int size);
 }

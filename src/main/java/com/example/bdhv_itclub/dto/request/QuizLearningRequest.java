@@ -1,6 +1,5 @@
 package com.example.bdhv_itclub.dto.request;
 
-import com.example.bdhv_itclub.dto.reponse.AnswerLearningRequest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
@@ -18,13 +17,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizLearningRequest {
-
-    @NotNull(message = "Quiz id can not be null")
+    @NotNull(message = "Mã câu hỏi không được để trống")
     @JsonProperty("quiz_id")
     private Integer id;
 
-    @JsonProperty("list_answers")
+    @JsonProperty("answers")
     @Valid
-    @NotEmpty(message = "List answer can not be empty")
-    private List<AnswerLearningRequest> listAnswers = new ArrayList<>();
+    @NotEmpty(message = "Các câu trả lời không được để trống")
+    private List<QuizAnswerLearningRequest> answers = new ArrayList<>();
 }

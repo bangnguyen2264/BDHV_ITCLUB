@@ -14,13 +14,12 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NoteResponse {
-
     private Integer id;
 
     private String content;
 
-    @JsonProperty("current_time")
-    private LocalTime currentTime;
+    @JsonProperty("recorded_time")
+    private LocalTime recordedTime;
 
     @JsonProperty("created_at")
     private Instant createdAt;
@@ -28,9 +27,9 @@ public class NoteResponse {
     @JsonProperty("lesson_id")
     private Integer lessonId;
 
-    @JsonProperty("title_lesson")
-    private String titleLesson;
+    @JsonProperty("lesson_title")
+    private String lessonTitle;
 
-    @JsonProperty("title_chapter")
-    private String titleChapter;
+    @JsonProperty("chapter_title")
+    private String chapterTitle;
 }

@@ -1,15 +1,17 @@
 package com.example.bdhv_itclub.repository;
 
 
-import com.example.bdhv_itclub.entity.Chapter;
-import com.example.bdhv_itclub.entity.Lesson;
+import com.example.bdhv_itclub.entity.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, Integer> {
-    boolean existsLessonByNameAndChapter(String name, Chapter chapter);
+    boolean existsByNameAndChapter(String name, CourseChapter chapter);
 
-    Lesson findLessonByNameAndChapter(String name, Chapter chapter);
+    Lesson findByNameAndChapter(String name, CourseChapter chapter);
 
+    List<Lesson> findByChapterOrderByLessonOrderAsc(CourseChapter courseChapter);
 }

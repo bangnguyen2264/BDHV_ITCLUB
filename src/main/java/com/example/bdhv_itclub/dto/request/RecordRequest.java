@@ -17,19 +17,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecordRequest {
-
-    @NotNull(message = "User id can not be null!")
-    @JsonProperty("user_id")
-    private Integer userId;
-
-    @NotNull(message = "Contest id can not be null!")
+    @NotNull(message = "Mã cuộc thi không được để trống")
     @JsonProperty("contest_id")
     private Integer contestId;
 
     private int period;
 
-    @JsonProperty("list_quizzes")
+    @JsonProperty("quizzes")
     @Valid
-    @NotEmpty(message = "List quiz can not be empty")
-    private List<QuizLearningRequest> listQuizzes = new ArrayList<>();
+    @NotEmpty(message = "Danh sách câu hỏi không được để trống")
+    private List<QuizLearningRequest> quizzes = new ArrayList<>();
 }

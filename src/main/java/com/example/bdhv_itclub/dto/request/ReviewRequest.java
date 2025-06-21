@@ -13,19 +13,14 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewRequest {
-
     private Integer id;
 
-    @NotEmpty(message = "Comment can not be empty")
+    @NotEmpty(message = "Nội dung bình luận không được để trống")
     private String comment;
 
     private int rating;
 
-    @NotNull(message = "Course id can not be null")
+    @NotNull(message = "Mã khóa học không được để trống")
     @JsonProperty("course_id")
     private Integer courseId;
-
-    @NotNull(message = "User id can not be null")
-    @JsonProperty("user_id")
-    private Integer userId;
 }

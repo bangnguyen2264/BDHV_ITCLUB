@@ -29,7 +29,6 @@ public class ResidentServiceImpl implements ResidentService {
         User user = getResidentUser();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
-        user.setDob(request.getDob());
         userRepository.save(user);
         return UserResponse.fromUser(user);
     }

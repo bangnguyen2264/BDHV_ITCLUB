@@ -1,5 +1,6 @@
 package com.example.bdhv_itclub.entity;
 
+import com.example.bdhv_itclub.constant.FeedbackStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,9 +13,8 @@ import lombok.Setter;
 @AllArgsConstructor
 
 @Entity
-@Table(name = "feed_back")
+@Table(name = "feedback")
 public class Feedback {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

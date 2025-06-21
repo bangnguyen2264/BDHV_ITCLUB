@@ -1,10 +1,7 @@
 package com.example.bdhv_itclub.service.impl;
 
-
 import com.example.bdhv_itclub.dto.reponse.CertificateResponse;
-import com.example.bdhv_itclub.entity.Certificate;
-import com.example.bdhv_itclub.entity.Courses;
-import com.example.bdhv_itclub.entity.User;
+import com.example.bdhv_itclub.entity.*;
 import com.example.bdhv_itclub.exception.BadRequestException;
 import com.example.bdhv_itclub.exception.NotFoundException;
 import com.example.bdhv_itclub.repository.CertificateRepository;
@@ -30,35 +27,35 @@ public class CertificateServiceImpl implements CertificateService {
         this.certificateRepository = certificateRepository;
     }
 
+    // Ok
     @Override
-    public CertificateResponse save(String email, Courses courses) {
+    public CertificateResponse save(String email, Course course) {
         User user = userRepository.findByEmail(email).get();
         Certificate certificate = null;
         Certificate savedCertificate;
-        if (courses.isFinished()) {
+        if (course.isFinished()) {
             certificate = new Certificate();
-            certificate.setCourses(courses);
+            certificate.setCourse(course);
             certificate.setAchievedTime(Instant.now());
             certificate.setUser(user);
-
             savedCertificate = certificateRepository.save(certificate);
         } else {
-            throw new BadRequestException("Khóa học nay chưa kết thúc. Vui lòng chờ cập nhật thêm bài học mới");
+            throw new BadRequestException("Khóa học này chưa kết thúc. Vui lòng chờ cập nhật thêm bài học mới");
         }
-        CertificateResponse response = modelMapper.map(savedCertificate, CertificateResponse.class);
-        response.setStudentName(savedCertificate.getUser().getFullName());
-        response.setTitleCourse(savedCertificate.getCourses().getTitle());
-        return response;
+        CertificateResponse certificateResponse = modelMapper.map(savedCertificate, CertificateResponse.class);
+        certificateResponse.setStudentName(savedCertificate.getUser().getFullName());
+        certificateResponse.setCourseTitle(savedCertificate.getCourse().getTitle());
+        return certificateResponse;
     }
 
+    // Ok
     @Override
     public CertificateResponse getById(Integer certificateId) {
         Certificate certificate = certificateRepository.findById(certificateId)
-                .orElseThrow(() -> new NotFoundException("Certificate ID không tồn tại"));
-
-        CertificateResponse response = modelMapper.map(certificate, CertificateResponse.class);
-        response.setStudentName(certificate.getUser().getFullName());
-        response.setTitleCourse(certificate.getCourses().getTitle());
-        return response;
+                .orElseThrow(() -> new NotFoundException("Mã chứng chỉ không tồn tại"));
+        CertificateResponse certificateResponse = modelMapper.map(certificate, CertificateResponse.class);
+        certificateResponse.setStudentName(certificate.getUser().getFullName());
+        certificateResponse.setCourseTitle(certificate.getCourse().getTitle());
+        return certificateResponse;
     }
 }

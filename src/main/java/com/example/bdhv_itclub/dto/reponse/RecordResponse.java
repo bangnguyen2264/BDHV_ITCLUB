@@ -13,7 +13,6 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecordResponse {
-
     private Integer id;
 
     private String username;
@@ -21,8 +20,8 @@ public class RecordResponse {
     @JsonProperty("user_id")
     private Integer userId;
 
-    @JsonProperty("title_contest")
-    private String titleContest;
+    @JsonProperty("contest_title")
+    private String contestTitle;
 
     @JsonProperty("contest_id")
     private Integer contestId;
@@ -37,6 +36,6 @@ public class RecordResponse {
     @JsonProperty("total_quizzes")
     private float totalQuizzes;
 
-    @JsonProperty("total_quiz_is_correct")
-    private float totalQuizIsCorrect;
+    @JsonProperty("total_correct_quizzes")
+    private float totalCorrectQuizzes;
 }

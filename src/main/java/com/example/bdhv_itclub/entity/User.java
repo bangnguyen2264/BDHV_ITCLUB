@@ -1,5 +1,6 @@
 package com.example.bdhv_itclub.entity;
 
+import com.example.bdhv_itclub.constant.CommonStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,44 +25,64 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(name = "full_name", length = 45, nullable = false)
     private String fullName;
-    private LocalDate dob;
-    @Column(unique = true, nullable = false)
+
+    @Column(nullable = false, unique = true, length = 30)
     private String email;
-    @Column(nullable = false)
+
+    @Column(name = "phone_number", length = 11)
+    private String phoneNumber;
+
+    @Column(length = 100)
+    private String photo;
+
+    @Column(length = 64, nullable = false)
     private String password;
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Role role;
-    @Column(name = "verification_code")
+
+    @Column(name = "created_time", nullable = false, updatable = false)
+    private Instant createdTime;
+
+    private boolean enabled;
+
+    @Column(name = "verification_codde", length = 64)
     private String verificationCode;
     @Column(name = "verification_expiration")
     private LocalDateTime verificationCodeExpiresAt;
-    private boolean enabled;
-    @Column(length = 100)
-    private String photo;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Order> listOrders = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private CommonStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TrackCourse> listTrackCourse = new ArrayList<>();
+    private List<Enrollment> orders = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Note> listNotes = new ArrayList<>();
+    private List<CourseTracking> courseTrackings = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QA> listQAs = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Review> listReviews = new ArrayList<>();
+    private List<QuestionAndAnswer> questionAndAnswers = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Certificate> listCertificate = new ArrayList<>();
+    private List<Review> reviews = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Record> listRecords = new ArrayList<>();
+    private List<Certificate> certificates = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Records> records = new ArrayList<>();
 
 
-
+    @PrePersist
+    protected void onCreate() {
+        this.createdTime = Instant.now();
+    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.getName()));

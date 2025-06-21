@@ -20,7 +20,7 @@ import java.util.Base64;
 @Component
 @Getter
 public class Payment {
-    private String ACCOUNT_NAME = "ĐỖ KIM LÂM";
+    private String ACCOUNT_NAME = "ĐỖ KIM LÂM"; // Không để được vào env do khi lấy ra nó không hỗ trợ utf-8
     @Value("${payment.bank_branch}")
     private String BANK_BRANCH;
     @Value("${payment.bank_number}")

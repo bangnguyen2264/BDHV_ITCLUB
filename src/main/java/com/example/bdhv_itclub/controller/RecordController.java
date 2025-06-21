@@ -6,12 +6,13 @@ import com.example.bdhv_itclub.service.RecordService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/record")
+@RequestMapping("/api/record")
 public class RecordController {
     private final RecordService recordService;
 
@@ -19,32 +20,46 @@ public class RecordController {
         this.recordService = recordService;
     }
 
-    @PostMapping("/save")
-    public ResponseEntity<?> save(@RequestBody @Valid RecordRequest recordRequest){
-        return ResponseEntity.status(HttpStatus.CREATED).body(recordService.saveRecord(recordRequest));
-    }
-
+    // Ok
     @GetMapping("/list-all/user")
-    public ResponseEntity<?> listAllByUser(@RequestParam(value = "id") Integer userId) {
-        List<RecordResponse> listRecords = recordService.listAllRecord(userId);
-        if (listRecords.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(listRecords);
+    public ResponseEntity<?> listAllByUser(
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(recordService.listAllRecordByUser(email));
     }
 
+    // Ok
     @GetMapping("/list-all/user-contest")
-    public ResponseEntity<?> listAllByUserAndContest(@RequestParam(value = "user") Integer userId,
-                                                     @RequestParam(value = "contest") Integer contestId){
-        List<RecordResponse> listRecords = recordService.listAllRecordByUserAndContest(userId, contestId);
-        if(listRecords.isEmpty()){
+    public ResponseEntity<?> listAllByUserAndContest(
+            @RequestParam(value = "contest") Integer contestId,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        List<RecordResponse> recordResponses = recordService.listAllRecordByUserAndContest(contestId, email);
+        if (recordResponses.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(listRecords);
+        return ResponseEntity.ok(recordResponses);
+    }
+    // Ok
+    @PostMapping("/save")
+    public ResponseEntity<?> save(
+            @RequestBody @Valid RecordRequest recordRequest,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(recordService.saveRecord(recordRequest, email));
     }
 
+    // Ok
     @GetMapping("/review/{id}")
-    public ResponseEntity<?> review(@PathVariable(value = "id") Integer recordId){
-        return ResponseEntity.ok(recordService.review(recordId));
+    public ResponseEntity<?> review(
+            @PathVariable(value = "id") Integer recordId,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(recordService.review(recordId, email));
     }
 }

@@ -1,24 +1,28 @@
 package com.example.bdhv_itclub.service.impl;
 
-
-import com.example.bdhv_itclub.dto.reponse.AnswerDto;
+import com.example.bdhv_itclub.constant.QuizType;
 import com.example.bdhv_itclub.dto.reponse.ContestResponse;
-import com.example.bdhv_itclub.dto.reponse.ContestReturnInTest;
-import com.example.bdhv_itclub.dto.reponse.QuizReturnLearningPage;
+import com.example.bdhv_itclub.dto.reponse.ContestResponseForTest;
+import com.example.bdhv_itclub.dto.reponse.QuizResponseForLearningPage;
 import com.example.bdhv_itclub.dto.request.ContestRequest;
+import com.example.bdhv_itclub.dto.request.QuizAnswerDTO;
 import com.example.bdhv_itclub.dto.request.QuizRequest;
-import com.example.bdhv_itclub.entity.Answer;
 import com.example.bdhv_itclub.entity.Contest;
 import com.example.bdhv_itclub.entity.Quiz;
-import com.example.bdhv_itclub.entity.QuizType;
+import com.example.bdhv_itclub.entity.QuizAnswer;
 import com.example.bdhv_itclub.exception.ConflictException;
 import com.example.bdhv_itclub.exception.NotFoundException;
 import com.example.bdhv_itclub.repository.ContestRepository;
 import com.example.bdhv_itclub.repository.QuizRepository;
 import com.example.bdhv_itclub.repository.RecordRepository;
 import com.example.bdhv_itclub.service.ContestService;
-import com.example.bdhv_itclub.utils.Utils;
+
+import com.example.bdhv_itclub.utils.GlobalUtil;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +38,6 @@ public class ContestServiceImpl implements ContestService {
     private final ModelMapper modelMapper;
     private final ContestRepository contestRepository;
     private final RecordRepository recordRepository;
-
     private final QuizRepository quizRepository;
 
     public ContestServiceImpl(ModelMapper modelMapper, ContestRepository contestRepository, RecordRepository recordRepository, QuizRepository quizRepository) {
@@ -44,149 +47,170 @@ public class ContestServiceImpl implements ContestService {
         this.quizRepository = quizRepository;
     }
 
+    // Ok
     @Override
-    public List<ContestResponse> listAll() {
-        List<Contest> listContests = contestRepository.findAll();
-        return listContests.stream().map(
-                contest -> {
-                    ContestResponse response = modelMapper.map(contest, ContestResponse.class);
-                    response.setNumberQuestion(contest.getListQuizzes().size());
-                    response.setListQuizzes(null);
-                    int numberOfJoined = recordRepository.countAllByContest(contest);
-                    response.setNumberOfJoined(numberOfJoined);
-                    return response;
-                }).toList();
+    public ContestResponse get(Integer contestId) {
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new NotFoundException("Mã cuộc thi không tồn tại"));
+        return modelMapper.map(contest, ContestResponse.class);
     }
 
+    // Ok
     @Override
-    public ContestReturnInTest joinTest(Integer contestId) {
-        Contest contestInDB = contestRepository.findById(contestId)
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
-
-        ContestReturnInTest responseContest = modelMapper.map(contestInDB, ContestReturnInTest.class);
-        List<QuizReturnLearningPage> quizReturnLearningPages = convertToQuizResponse(contestInDB.getListQuizzes());
-        responseContest.setListQuizzes(quizReturnLearningPages);
-        responseContest.setNumberQuestion(quizReturnLearningPages.size());
-        return responseContest;
+    public Page<ContestResponse> listAllContests(int page, int size, String sortBy, String direction) {
+        Sort.Direction sortDirection;
+        try {
+            sortDirection = Sort.Direction.fromString(direction);
+        } catch (IllegalArgumentException e) {
+            sortDirection = Sort.Direction.DESC;
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+        Page<Contest> contests = contestRepository.findAll(pageable);
+        return contests.map(contest -> {
+            ContestResponse contestResponse = modelMapper.map(contest, ContestResponse.class);
+            contestResponse.setNumberOfQuestion(contest.getQuizzes().size());
+            contestResponse.setQuizzes(null);
+            int numberOfJoined = recordRepository.countAllByContest(contest);
+            contestResponse.setNumberOfJoined(numberOfJoined);
+            return contestResponse;
+        });
     }
 
+    // Ok
     @Override
-    public List<ContestResponse> search(String keyword) {
-        List<Contest> listContests = contestRepository.search(keyword);
-        return listContests.stream().map(
-                contest -> {
-                    ContestResponse response = modelMapper.map(contest, ContestResponse.class);
-                    response.setNumberQuestion(contest.getListQuizzes().size());
-                    response.setListQuizzes(null);
-                    return response;
-                }).toList();
+    public Page<ContestResponse> listAllEnabledContests(int page, int size, String sortBy, String direction) {
+        Sort.Direction sortDirection;
+        try {
+            sortDirection = Sort.Direction.fromString(direction);
+        } catch (IllegalArgumentException e) {
+            sortDirection = Sort.Direction.DESC;
+        }
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
+        Page<Contest> contests = contestRepository.findAllByEnabledTrue(pageable);
+        return contests.map(contest -> {
+            ContestResponse contestResponse = modelMapper.map(contest, ContestResponse.class);
+            contestResponse.setNumberOfQuestion(contest.getQuizzes().size());
+            contestResponse.setQuizzes(null);
+            int numberOfJoined = recordRepository.countAllByContest(contest);
+            contestResponse.setNumberOfJoined(numberOfJoined);
+            return contestResponse;
+        });
     }
 
+    // Ok
     @Override
     public ContestResponse save(ContestRequest contestRequest) {
-        if(contestRepository.existsContestByTitle(contestRequest.getTitle())){
-            throw new ConflictException( "Tên bài kiểm tra đã tồn tại!");
+        if (contestRepository.existsByTitle(contestRequest.getTitle())) {
+            throw new ConflictException( "Tên bài kiểm tra đã tồn tại");
         }
         Contest contest = new Contest();
         contest.setTitle(contestRequest.getTitle());
         contest.setPeriod(contestRequest.getPeriod());
         contest.setEnabled(contestRequest.isEnabled());
         contest.setCreatedAt(Instant.now());
-        for (QuizRequest quizRequest : contestRequest.getQuizList()){
-            contest.add(Utils.convertToQuizEntity(quizRequest));
+        for (QuizRequest quizRequest : contestRequest.getQuizzes()) {
+            contest.addAQuiz(GlobalUtil.convertToQuizEntity(quizRequest));
         }
-
         Contest savedContest = contestRepository.save(contest);
         return modelMapper.map(savedContest, ContestResponse.class);
     }
 
+    // Ok
     @Override
     public ContestResponse update(Integer contestId, ContestRequest contestRequest) {
-        Contest contestInDB = contestRepository.findById(contestId)
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new NotFoundException("Mã cuộc thi không tồn tại"));
+        Contest checkDuplicatedContest = contestRepository.findByTitle(contestRequest.getTitle());
 
-        Contest contestCheckDuplicate = contestRepository.findContestByTitle(contestRequest.getTitle());
-
-        if(contestCheckDuplicate != null){
-            if(!Objects.equals(contestInDB.getId(), contestCheckDuplicate.getId())){
-                throw new ConflictException( "Tên bài kiểm tra đã tồn tại!");
+        if (checkDuplicatedContest != null) {
+            if (!Objects.equals(contest.getId(), checkDuplicatedContest.getId())) {
+                throw new ConflictException( "Tên bài kiểm tra đã tồn tại");
             }
         }
+        contest.setTitle(contestRequest.getTitle());
+        contest.setPeriod(contestRequest.getPeriod());
+        contest.setEnabled(contestRequest.isEnabled());
 
-        contestInDB.setTitle(contestRequest.getTitle());
-        contestInDB.setPeriod(contestRequest.getPeriod());
-        contestInDB.setEnabled(contestRequest.isEnabled());
-
-        List<Quiz> listQuizzes = new ArrayList<>();
-        for (QuizRequest quizRequest : contestRequest.getQuizList()){
-            Quiz quiz = quizRequest.getId() == null ? Utils.convertToQuizEntity(quizRequest) : updateQuiz(quizRequest);
-            quiz.setContest(contestInDB);
-            listQuizzes.add(quiz);
+        List<Quiz> quizzes = new ArrayList<>();
+        for (QuizRequest quizRequest : contestRequest.getQuizzes()) {
+            Quiz quiz = quizRequest.getId() == null ? GlobalUtil.convertToQuizEntity(quizRequest) : updateQuiz(quizRequest);
+            quiz.setContest(contest);
+            quizzes.add(quiz);
         }
-        contestInDB.setQuizList(listQuizzes);
-        Contest savedContest = contestRepository.save(contestInDB);
+        contest.setQuizzes(quizzes);
+        Contest savedContest = contestRepository.save(contest);
         return modelMapper.map(savedContest, ContestResponse.class);
     }
 
+    // Ok
     @Override
     public String delete(Integer contestId) {
-        Contest contest = contestRepository.findById(contestId)
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
-
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new NotFoundException("Mã cuộc thi không tồn tại"));
         contestRepository.delete(contest);
-        return "Xóa bài thi thành công";
+        return "Xóa cuộc thi thành công";
     }
 
-    @Override
-    public ContestResponse get(Integer contestId) {
-        Contest contestInDB = contestRepository.findById(contestId)
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
-
-        return modelMapper.map(contestInDB, ContestResponse.class);
-    }
-
+    // Ok
     @Override
     public String switchEnabled(Integer contestId, boolean enabled) {
-        Contest contestInDB = contestRepository.findById(contestId)
-                .orElseThrow(() -> new NotFoundException("Contest ID không tồn tại"));
-
-        contestRepository.switchEnabled(contestInDB.getId(), enabled);
-        return "Đổi trạng thái bài thi thành công";
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new NotFoundException("Mã cuộc thi không tồn tại"));
+        contestRepository.switchEnabled(contest.getId(), enabled);
+        return "Cuộc thi đã được chuyển đổi trạng thái";
     }
 
-    private List<QuizReturnLearningPage> convertToQuizResponse(List<Quiz> quizzes) {
-        List<QuizReturnLearningPage> listQuizzes = new ArrayList<>();
+    // Ok
+    @Override
+    public ContestResponseForTest joinTest(Integer contestId) {
+        Contest contest = contestRepository.findById(contestId).orElseThrow(() -> new NotFoundException("Mã cuộc thi không tồn tại"));
+        ContestResponseForTest contestResponseForTest = modelMapper.map(contest, ContestResponseForTest.class);
+        List<QuizResponseForLearningPage> quizResponseForLearningPage = convertToQuizResponse(contest.getQuizzes());
+        contestResponseForTest.setQuizzes(quizResponseForLearningPage);
+        contestResponseForTest.setNumberOfQuestion(quizResponseForLearningPage.size());
+        return contestResponseForTest;
+    }
+
+    // Ok
+    @Override
+    public List<ContestResponse> search(String keyword) {
+        List<Contest> contests = contestRepository.search(keyword);
+        return contests.stream().map(contest -> {
+            ContestResponse contestResponse = modelMapper.map(contest, ContestResponse.class);
+            contestResponse.setNumberOfQuestion(contest.getQuizzes().size());
+            contestResponse.setQuizzes(null);
+            return contestResponse;
+        }).toList();
+    }
+
+    // Ok
+    private List<QuizResponseForLearningPage> convertToQuizResponse(List<Quiz> quizzes) {
+        List<QuizResponseForLearningPage> quizResponseForLearningPages = new ArrayList<>();
         int i = 0;
         for (Quiz quiz : quizzes) {
-            QuizReturnLearningPage quizReturnLearningPage = modelMapper.map(quiz, QuizReturnLearningPage.class);
+            QuizResponseForLearningPage quizResponseForLearningPage = modelMapper.map(quiz, QuizResponseForLearningPage.class);
             if (quiz.getQuizType().toString().equals("PERFORATE")) {
-                quizReturnLearningPage.setAnswerList(null);
+                quizResponseForLearningPage.setAnswers(null);
             }
-            quizReturnLearningPage.setOrder(++i);
-            listQuizzes.add(quizReturnLearningPage);
+            quizResponseForLearningPage.setOrder(++i);
+            quizResponseForLearningPages.add(quizResponseForLearningPage);
         }
-        return listQuizzes;
+        return quizResponseForLearningPages;
     }
 
+    // Ok
     private Quiz updateQuiz(QuizRequest quizRequest) {
-        Quiz quizInDB = quizRepository.findById(quizRequest.getId())
-                .orElseThrow(() -> new NotFoundException("Quiz ID không tồn tại"));
+        Quiz quiz = quizRepository.findById(quizRequest.getId()).orElseThrow(() -> new NotFoundException("Mã câu hỏi không tồn tại"));
+        quiz.setQuestion(quizRequest.getQuestion());
+        quiz.setQuizType(QuizType.valueOf(quizRequest.getQuizType()));
 
-        quizInDB.setQuestion(quizRequest.getQuestion());
-        quizInDB.setQuizType(QuizType.valueOf(quizRequest.getQuizType()));
-        List<Answer> answerList = new ArrayList<>();
-        for(AnswerDto dto : quizRequest.getAnswerList()){
-            Answer answer = null;
-            if(dto.getId() != null){
-                answer = new Answer(dto.getId(), dto.getContent(), dto.isCorrect(), quizInDB);
-            }else{
-                answer = new Answer(dto.getContent(), dto.isCorrect(), quizInDB);
+        List<QuizAnswer> quizAnswers = new ArrayList<>();
+        for (QuizAnswerDTO quizAnswerDTO : quizRequest.getAnswers()) {
+            QuizAnswer quizAnswer = null;
+            if (quizAnswerDTO.getId() != null) {
+                quizAnswer = new QuizAnswer(quizAnswerDTO.getId(), quizAnswerDTO.getContent(), quizAnswerDTO.isCorrect(), quiz);
+            } else{
+                quizAnswer = new QuizAnswer(quizAnswerDTO.getContent(), quizAnswerDTO.isCorrect(), quiz);
             }
-            answerList.add(answer);
+            quizAnswers.add(quizAnswer);
         }
-
-        quizInDB.setAnswerList(answerList);
-
-        return quizInDB;
+        quiz.setAnswers(quizAnswers);
+        return quiz;
     }
 }

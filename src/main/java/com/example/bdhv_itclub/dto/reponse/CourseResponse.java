@@ -1,6 +1,8 @@
 package com.example.bdhv_itclub.dto.reponse;
 
 
+import com.example.bdhv_itclub.dto.request.CourseCategoryDTO;
+import com.example.bdhv_itclub.dto.request.CourseChapterDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
@@ -17,7 +19,6 @@ import java.util.List;
 @AllArgsConstructor
 @JsonPropertyOrder({"id", "title", "slug", "description", "thumbnail", "price", "discount", "student_count", "published_at", "is_enabled", "is_published", "category"})
 public class CourseResponse {
-
     private Integer id;
 
     private String title;
@@ -53,13 +54,13 @@ public class CourseResponse {
     @JsonProperty("average_review")
     private double averageReview;
 
-    private CategoryDTO category;
+    private CourseCategoryDTO category;
 
-    @JsonProperty("info_list")
-    private List<CourseInfoResponse> infoList;
+    @JsonProperty("course_informations")
+    private List<CourseInformationResponse> courseInformations;
 
-    @JsonProperty("chapter_list")
-    private List<ChapterDTO> chapterList;
+    @JsonProperty("course_chapters")
+    private List<CourseChapterDTO> courseChapters;
 
     @JsonProperty("total_chapter")
     private int totalChapter;

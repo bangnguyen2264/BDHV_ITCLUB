@@ -1,17 +1,23 @@
 package com.example.bdhv_itclub.service;
 
-import com.example.bdhv_itclub.dto.reponse.ApiResponse;
+
 import com.example.bdhv_itclub.dto.reponse.UserResponse;
 import com.example.bdhv_itclub.dto.request.UserRequest;
-import com.example.bdhv_itclub.dto.request.UserFilterRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.example.bdhv_itclub.entity.User;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 public interface UserService {
-    ApiResponse<List<UserResponse>> getAll(UserFilterRequest filter, Pageable pageable);
-    UserResponse getById(Integer id);
-    UserResponse update(Integer id, UserRequest request);
-    void disableUser(Integer id);
+    UserResponse get(Integer userId);
+    UserResponse getByEmail(String email);
+    User getUserByEmail(String email);
+    List<UserResponse> getAllUsers();
+    UserResponse createUser(UserRequest userRequest, MultipartFile img);
+    UserResponse updateUser(UserRequest userRequest, Integer userId, MultipartFile img);
+    UserResponse updateUserInformation(String fullName, MultipartFile img, String email);
+    void updateUserRefreshToken(String refreshToken, String email);
+    String changePassword(String password, String email);
+    String switchBlockStatus(Integer id);
+    String delete(Integer userId);
 }

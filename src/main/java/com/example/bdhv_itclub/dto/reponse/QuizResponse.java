@@ -1,6 +1,8 @@
 package com.example.bdhv_itclub.dto.reponse;
 
-import com.example.bdhv_itclub.entity.QuizType;
+
+import com.example.bdhv_itclub.constant.QuizType;
+import com.example.bdhv_itclub.dto.request.QuizAnswerDTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizResponse {
-
     private Integer id;
 
     private String question;
@@ -23,6 +24,6 @@ public class QuizResponse {
     @JsonProperty("quiz_type")
     private QuizType quizType;
 
-    @JsonProperty("answer_list")
-    private List<AnswerDto> answerList = new ArrayList<>();
+    @JsonProperty("answers")
+    private List<QuizAnswerDTO> answers = new ArrayList<>();
 }

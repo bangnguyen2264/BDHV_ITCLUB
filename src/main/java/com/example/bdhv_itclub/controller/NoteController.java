@@ -1,16 +1,16 @@
 package com.example.bdhv_itclub.controller;
 
-
 import com.example.bdhv_itclub.dto.request.NoteRequest;
 import com.example.bdhv_itclub.service.NoteService;
-import com.example.bdhv_itclub.utils.ApiMessage;
+import com.example.bdhv_itclub.utils.annotation.APIResponseMessage;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/notes")
+@RequestMapping("/api/note")
 public class NoteController {
     private final NoteService noteService;
 
@@ -18,29 +18,47 @@ public class NoteController {
         this.noteService = noteService;
     }
 
-    @PostMapping("/create")
-    @ApiMessage("Create a note")
-    public ResponseEntity<?> create(@RequestBody @Valid NoteRequest noteRequest){
-        return new ResponseEntity<>(noteService.createNote(noteRequest), HttpStatus.CREATED);
-    }
-
+    // Ok
     @GetMapping("/get-all")
-    @ApiMessage("List all notes")
-    public ResponseEntity<?> list(@RequestParam(value = "course") Integer courseId,
-                                  @RequestParam(value = "user") Integer userId){
-        return ResponseEntity.ok(noteService.getAll(userId, courseId));
+    @APIResponseMessage("Liệt kê tất cả ghi chú")
+    public ResponseEntity<?> list(
+            @RequestParam(value = "course") Integer courseId,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(noteService.getAllByEmail(email, courseId));
     }
 
-    @PutMapping("/update/{id}")
-    @ApiMessage("Update the note")
-    public ResponseEntity<?> update(@PathVariable(value = "id") Integer noteId,
-                                    @RequestParam(value = "content") String content){
-        return ResponseEntity.ok(noteService.updateNote(noteId, content));
+    // Ok
+    @PostMapping("/create")
+    @APIResponseMessage("Thêm ghi chú")
+    public ResponseEntity<?> create(
+            @RequestBody @Valid NoteRequest noteRequest,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return new ResponseEntity<>(noteService.createNote(noteRequest, email), HttpStatus.CREATED);
     }
 
+    // Ok
+    @PutMapping("/update")
+    public ResponseEntity<?> updateNote(
+            @RequestParam("id") Integer noteId,
+            @RequestParam("content") String content,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(noteService.updateNote(noteId, content, email));
+    }
+
+    // Ok
     @DeleteMapping("/delete/{id}")
-    @ApiMessage("Delete the note")
-    public ResponseEntity<?> delete(@PathVariable(value = "id") Integer noteId){
-        return ResponseEntity.ok(noteService.deleteNote(noteId));
+    @APIResponseMessage("Xóa ghi chú")
+    public ResponseEntity<?> delete(
+            @PathVariable("id") Integer noteId,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(noteService.deleteNote(noteId, email));
     }
 }

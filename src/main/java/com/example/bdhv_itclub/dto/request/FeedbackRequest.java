@@ -14,24 +14,24 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackRequest {
-
     private Integer id;
 
-    @NotEmpty(message = "Full Name can not be empty")
-    @Length(min = 2, max = 45, message = "Full name have must 2-45 characters")
+    @NotEmpty(message = "Họ và tên không được để trống")
+    @Length(min = 2, max = 45, message = "Họ và tên phải từ 2-45 ký tự")
     @JsonProperty("full_name")
     private String fullName;
 
-    @NotEmpty(message = "Email can not be empty")
-    @Email(message = "This is not format of email")
-    @Length(min = 5, max = 50, message = "Email have must 5-50 characters")
+    @NotEmpty(message = "Email không được để trống")
+    @Email(message = "Định dạng email không hợp lệ")
+    @Length(min = 5, max = 50, message = "Email phải từ 5-50 ký tự")
     private String email;
 
-    @NotEmpty(message = "Phone number can not be empty")
-    @Length(min = 10, max = 11, message = "Phone number 10-11 characters")
+    @NotEmpty(message = "Số điện thoại không được để trống")
+    @Length(min = 10, max = 11, message = "Số điện thoại phải từ 10-11 ký tự")
     @JsonProperty("phone_number")
     private String phoneNumber;
 
-    @NotEmpty(message = "Content can not be empty")
+    @NotEmpty(message = "Nội dung phản hồi không được để trống")
+    @Length(min = 10, message = "Nội dung phản hồi phải từ 10 ký tự")
     private String content;
 }

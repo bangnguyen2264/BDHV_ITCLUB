@@ -1,20 +1,19 @@
 package com.example.bdhv_itclub.service.impl;
 
-
-import com.example.bdhv_itclub.dto.reponse.ListReviewResponse;
+import com.example.bdhv_itclub.dto.reponse.ReviewListResponse;
 import com.example.bdhv_itclub.dto.reponse.ReviewResponse;
 import com.example.bdhv_itclub.dto.request.ReviewRequest;
-import com.example.bdhv_itclub.entity.Courses;
+import com.example.bdhv_itclub.entity.Course;
 import com.example.bdhv_itclub.entity.Review;
 import com.example.bdhv_itclub.entity.User;
 import com.example.bdhv_itclub.exception.ConflictException;
 import com.example.bdhv_itclub.exception.NotFoundException;
-import com.example.bdhv_itclub.repository.CoursesRepository;
-import com.example.bdhv_itclub.repository.OrderRepository;
+import com.example.bdhv_itclub.repository.CourseRepository;
+import com.example.bdhv_itclub.repository.EnrollmentRepository;
 import com.example.bdhv_itclub.repository.ReviewRepository;
 import com.example.bdhv_itclub.repository.UserRepository;
 import com.example.bdhv_itclub.service.ReviewService;
-import com.example.bdhv_itclub.utils.Utils;
+import com.example.bdhv_itclub.utils.GlobalUtil;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
@@ -30,107 +29,111 @@ import java.util.List;
 @Service
 public class ReviewServiceImpl implements ReviewService {
     private final ModelMapper modelMapper;
-    private final CoursesRepository coursesRepository;
+    private final CourseRepository courseRepository;
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
-    private final OrderRepository orderRepository;
+    private final EnrollmentRepository orderRepository;
 
-    public ReviewServiceImpl(ModelMapper modelMapper, CoursesRepository coursesRepository, ReviewRepository reviewRepository, UserRepository userRepository, OrderRepository orderRepository) {
+    public ReviewServiceImpl(ModelMapper modelMapper, CourseRepository courseRepository, ReviewRepository reviewRepository, UserRepository userRepository, EnrollmentRepository orderRepository) {
         this.modelMapper = modelMapper;
-        this.coursesRepository = coursesRepository;
+        this.courseRepository = courseRepository;
         this.reviewRepository = reviewRepository;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
     }
 
+    // Ok
     @Override
-    public ListReviewResponse listAllByCourse(Integer courseId) {
-        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
-        List<Review> listReview = reviewRepository.findByCourses(courses);
-        return convertToListReviewResponse(listReview);
+    public ReviewListResponse listAll() {
+        List<Review> reviews = reviewRepository.findAll();
+        return convertToReviewListResponse(reviews);
     }
 
+    // Ok
     @Override
-    public String checkCustomerToReviewed(Integer userId, Integer courseId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
-
-        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
-
-        // Kiểm tra user xem đã mua khoá học này chưa
-        if (orderRepository.existsOrderByCoursesAndUser(courses, user)) {
-            // Kiểm tra xem user đã đánh giá khoá học này chưa
-            if (reviewRepository.existsReviewByUserAndCourses(user, courses)) {
-                throw new ConflictException("Bạn đã đánh giá khóa học này trước đó!");
-            }
-            return "Bạn vui lòng đánh giá khóa học này!";
-        }
-        throw new AccessDeniedException("Bạn chưa mua khoá học này!");
+    public ReviewListResponse listAllByCourse(Integer courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
+        List<Review> reviews = reviewRepository.findByCourse(course);
+        return convertToReviewListResponse(reviews);
     }
 
+    // Ok
     @Override
-    public ReviewResponse createReview(ReviewRequest reviewRequest) {
-        User user = userRepository.findById(reviewRequest.getUserId()).orElseThrow(() -> new UsernameNotFoundException("User ID không tồn tại"));
-
-        Courses courses = coursesRepository.findById(reviewRequest.getCourseId()).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
-
-        if (!orderRepository.existsOrderByCoursesAndUser(courses, user)) {
-            throw new AccessDeniedException("Tài khoản " + user.getUsername() + " chưa từng mua khóa học này!");
+    public ReviewResponse createReview(ReviewRequest reviewRequest, String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Tài khoản không tồn tại"));
+        Course course = courseRepository.findById(reviewRequest.getCourseId()).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
+        if (!orderRepository.existsByCourseAndUser(course, user)) {
+            throw new AccessDeniedException("Tài khoản " + user.getUsername() + " chưa từng mua khóa học này");
         }
-
-        if (reviewRepository.existsReviewByUserAndCourses(user, courses)) {
-            throw new ConflictException("Tài khoản " + user.getUsername() + " đã đánh giá khóa học này trước đó!");
+        if (reviewRepository.existsReviewByUserAndCourse(user, course)) {
+            throw new AccessDeniedException("Tài khoản " + user.getUsername() + " đã đánh giá khóa học này trước đó");
         }
-
         Review review = new Review();
         review.setComment(reviewRequest.getComment());
         review.setRating(reviewRequest.getRating());
         review.setUser(user);
-        review.setCourses(courses);
+        review.setCourse(course);
         review.setReviewTime(Instant.now());
 
         Review savedReview = reviewRepository.save(review);
-
         return convertToReviewResponse(savedReview);
     }
 
+    // Ok
     @Override
-    public String deleteReview(Integer reviewId) {
-        Review reviewInDB = reviewRepository.findById(reviewId).orElseThrow(() -> new NotFoundException("Review ID không tồn tại"));
+    public String deleteReview(Integer reviewId, String email) {
+        Review review = reviewRepository.findById(reviewId).orElseThrow(() -> new NotFoundException("Mã đánh giá không tồn tại"));
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Tài khoản không tồn tại"));
 
-        reviewRepository.delete(reviewInDB);
-        return "Xóa đánh giá thành công!";
+        // Nếu không phải chủ sở hữu đánh giá và không phải admin
+        boolean isOwner = review.getUser().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole().getName().equalsIgnoreCase("ROLE_ADMIN");
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("Bạn không có quyền xóa đánh giá này");
+        }
+        reviewRepository.delete(review);
+        return "Xóa đánh giá thành công";
     }
 
+    // Ok
     @Override
-    public ListReviewResponse listAll() {
-        List<Review> listReviews = reviewRepository.findAll();
-        return convertToListReviewResponse(listReviews);
+    public String checkReviewedByCourse(Integer userId, Integer courseId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("Mã người dùng không tồn tại"));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
+
+        // Kiểm tra user xem đã mua khoá học này chưa
+        if (orderRepository.existsByCourseAndUser(course, user)) {
+            if (reviewRepository.existsReviewByUserAndCourse(user, course)) {
+                throw new ConflictException("Bạn đã đánh giá khóa học này trước đó");
+            }
+            return "Bạn vui lòng đánh giá khóa học này";
+        }
+        throw new AccessDeniedException("Bạn chưa mua khoá học này");
     }
 
-    // Convert danh sách review thành DTO
-    private ListReviewResponse convertToListReviewResponse(List<Review> listReviews) {
-        ListReviewResponse listReviewResponse = new ListReviewResponse();
-        listReviewResponse.setListResponses(listReviews.stream().map(this::convertToReviewResponse).toList());
-        int totalReview = listReviews.size();
-        listReviewResponse.setTotalReview(totalReview);
-        int totalRating = listReviews.stream().mapToInt(Review::getRating).sum();
+    // Ok
+    private ReviewListResponse convertToReviewListResponse(List<Review> reviews) {
+        ReviewListResponse reviewsResponse = new ReviewListResponse();
+        reviewsResponse.setReviewResponses(reviews.stream().map(this::convertToReviewResponse).toList());
+        int totalReview = reviews.size();
+        reviewsResponse.setTotalReview(totalReview);
+        int totalRating = reviews.stream().mapToInt(Review::getRating).sum();
         double averageReview = (double) totalRating / totalReview;
         averageReview = Math.round(averageReview * 10.0) / 10.0;
-        listReviewResponse.setAverageReview(averageReview);
-        return listReviewResponse;
+        reviewsResponse.setAverageReview(averageReview);
+        return reviewsResponse;
     }
 
-    // Convert review thành DTO
-    private ReviewResponse convertToReviewResponse(Review savedReview) {
-        ReviewResponse response = modelMapper.map(savedReview, ReviewResponse.class);
-        response.setTimeFormatted(Utils.formatDuration(Duration.between(savedReview.getReviewTime(), Instant.now())));
-        response.setUserId(savedReview.getUser().getId());
-        response.setUsername(savedReview.getUser().getUsername());
-        response.setPhotoUser(savedReview.getUser().getPhoto());
-        response.setCourseId(savedReview.getCourses().getId());
-        response.setTitleCourse(savedReview.getCourses().getTitle());
-        return response;
+    // Ok
+    private ReviewResponse convertToReviewResponse(Review review) {
+        ReviewResponse reviewResponse = modelMapper.map(review, ReviewResponse.class);
+        reviewResponse.setFormattedTime(GlobalUtil.convertDurationToString(Duration.between(review.getReviewTime(), Instant.now())));
+        reviewResponse.setUserId(review.getUser().getId());
+        reviewResponse.setUsername(review.getUser().getUsername());
+        reviewResponse.setUserPhoto(review.getUser().getPhoto());
+        reviewResponse.setCourseId(review.getCourse().getId());
+        reviewResponse.setCourseTitle(review.getCourse().getTitle());
+        return reviewResponse;
     }
-
-
 }

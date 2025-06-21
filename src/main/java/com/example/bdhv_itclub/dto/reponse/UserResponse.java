@@ -1,25 +1,56 @@
 package com.example.bdhv_itclub.dto.reponse;
 
+
+import com.example.bdhv_itclub.constant.CommonStatus;
+import com.example.bdhv_itclub.entity.Role;
 import com.example.bdhv_itclub.entity.User;
-import lombok.Builder;
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
-import java.time.LocalDate;
+import java.time.Instant;
 
-@Data
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UserResponse {
+    @JsonProperty("user_id")
     private Integer id;
+
+    @JsonProperty("full_name")
     private String fullName;
+
+    private String username;
+
     private String email;
-    private LocalDate dob;
+
+    @JsonProperty("phone_number")
+    private String phoneNumber;
+
+    private String photo;
+
+    @JsonProperty("created_time")
+    private Instant createdTime;
+
+    private boolean enabled;
+
+    private CommonStatus status;
+
+    private Role role;
 
     public static UserResponse fromUser(User user) {
         return UserResponse.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())
+                .username(user.getUsername())
                 .email(user.getEmail())
-                .dob(user.getDob())
+                .phoneNumber(user.getPhoneNumber())
+                .photo(user.getPhoto())
+                .createdTime(user.getCreatedTime())
+                .enabled(user.isEnabled())
+                .status(user.getStatus())
+                .role(user.getRole())
                 .build();
     }
 }

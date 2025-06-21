@@ -1,21 +1,17 @@
 package com.example.bdhv_itclub.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.Instant;
 import java.time.LocalTime;
+import java.time.Instant;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-
 @Entity
-@Table(name = "notes")
+@Table(name = "note")
 public class Note {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -23,8 +19,8 @@ public class Note {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "current_times", nullable = false)
-    private LocalTime currentTime;
+    @Column(name = "recorded_time", nullable = false)
+    private LocalTime recordedTime;
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;

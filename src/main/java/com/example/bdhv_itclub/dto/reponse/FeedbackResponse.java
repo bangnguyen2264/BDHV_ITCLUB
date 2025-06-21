@@ -11,7 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeedbackResponse {
-
     private Integer id;
 
     @JsonProperty("full_name")

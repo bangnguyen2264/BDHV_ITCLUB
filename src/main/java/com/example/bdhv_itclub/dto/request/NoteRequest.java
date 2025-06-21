@@ -15,7 +15,6 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NoteRequest {
-
     private Integer id;
 
     @NotEmpty
@@ -25,10 +24,6 @@ public class NoteRequest {
     @JsonProperty("lesson_id")
     private Integer lessonId;
 
-    @NotNull
-    @JsonProperty("user_id")
-    private Integer userId;
-
-    @JsonProperty("current_time")
-    private LocalTime currentTime;
+    @JsonProperty("recorded_time")
+    private LocalTime recordedTime;
 }

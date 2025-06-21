@@ -17,11 +17,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContestRequest {
-
     private Integer id;
 
-    @NotEmpty(message = "Title can not be empty")
-    @Length(min = 4, max = 150, message = "Title must have 4-150 characters.")
+    @NotEmpty(message = "Tiêu đề cuộc thi không được để trống")
+    @Length(min = 4, max = 150, message = "Tiêu đề cuộc thi phải từ 4-150 kí tự")
     private String title;
 
     private int period;
@@ -30,6 +29,6 @@ public class ContestRequest {
 
     @NotEmpty(message = "Câu hỏi không được để trống")
     @Valid
-    @JsonProperty("quiz_list")
-    private List<QuizRequest> quizList = new ArrayList<>();
+    @JsonProperty("quizzes")
+    private List<QuizRequest> quizzes = new ArrayList<>();
 }

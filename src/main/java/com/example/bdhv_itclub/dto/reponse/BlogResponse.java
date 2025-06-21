@@ -11,7 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BlogResponse {
-
     private Integer id;
 
     private String title;
@@ -26,13 +25,18 @@ public class BlogResponse {
 
     @JsonProperty("created_at_format")
     private String createdAtFormat;
+
     @JsonProperty("created_at")
     private String createdAt;
 
-    private int view;
+    @JsonProperty("is_approved")
+    private boolean isApproved;
+
+    @JsonProperty("number_of_views")
+    private int numberOfViews;
 
     private String username;
 
-    @JsonProperty("avatar_user")
-    private String avatarUser;
+    @JsonProperty("user_avatar")
+    private String userAvatar;
 }

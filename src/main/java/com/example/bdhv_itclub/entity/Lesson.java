@@ -1,13 +1,11 @@
 package com.example.bdhv_itclub.entity;
 
+import com.example.bdhv_itclub.constant.LessonType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.Instant;
 import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 
 @Getter
@@ -17,7 +15,6 @@ import java.util.List;
 @Entity
 @Table(name = "lesson")
 public class Lesson {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -32,7 +29,7 @@ public class Lesson {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id")
-    private Chapter chapter;
+    private CourseChapter chapter;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "video_id")
@@ -40,30 +37,30 @@ public class Lesson {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "text_id")
-    private TextLesson text;
+    private LessonText text;
 
-    private int orders;
-
-    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Quiz> quizList = new ArrayList<>();
+    private int lessonOrder;
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TrackCourse> listTrackCourse = new ArrayList<>();
+    private List<Quiz> quizzes = new ArrayList<>();
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Note> listNotes = new ArrayList<>();
+    private List<CourseTracking> courseTrackings = new ArrayList<>();
 
     @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QA> listQAs = new ArrayList<>();
+    private List<Note> notes = new ArrayList<>();
 
-    public void add(Quiz quiz){
-        this.quizList.add(new Quiz(quiz, this));
+    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuestionAndAnswer> questionAndAnswers = new ArrayList<>();
+
+    public void addAQuiz(Quiz quiz) {
+        this.quizzes.add(new Quiz(quiz, this));
     }
 
-    public void setQuizList(List<Quiz> quizList) {
-        if(quizList != null && !quizList.isEmpty()){
-            this.quizList.clear();
-            this.quizList.addAll(quizList);
+    public void setQuizzes(List<Quiz> quizzes) {
+        if (quizzes != null && !quizzes.isEmpty()) {
+            this.quizzes.clear();
+            this.quizzes.addAll(quizzes);
         }
     }
 }

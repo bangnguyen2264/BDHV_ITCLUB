@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 @Getter
 @Setter
-public class Role extends BaseEntity {
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

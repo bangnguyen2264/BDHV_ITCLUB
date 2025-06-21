@@ -1,19 +1,25 @@
 package com.example.bdhv_itclub.service.impl;
 
+import com.example.bdhv_itclub.constant.CourseInformationType;
+import com.example.bdhv_itclub.constant.LessonType;
 import com.example.bdhv_itclub.dto.reponse.*;
-import com.example.bdhv_itclub.dto.request.CourseInfoRequest;
-import com.example.bdhv_itclub.dto.request.CoursesRequest;
+import com.example.bdhv_itclub.dto.request.CourseChapterDTO;
+import com.example.bdhv_itclub.dto.request.CourseInformationRequest;
+import com.example.bdhv_itclub.dto.request.CourseRequest;
 import com.example.bdhv_itclub.entity.*;
 import com.example.bdhv_itclub.exception.ConflictException;
 import com.example.bdhv_itclub.exception.NotFoundException;
-import com.example.bdhv_itclub.repository.CategoryRepository;
-import com.example.bdhv_itclub.repository.CoursesRepository;
+import com.example.bdhv_itclub.repository.CourseCategoryRepository;
+import com.example.bdhv_itclub.repository.CourseRepository;
 import com.example.bdhv_itclub.repository.LessonRepository;
 import com.example.bdhv_itclub.repository.VideoRepository;
 import com.example.bdhv_itclub.service.CourseService;
-import com.example.bdhv_itclub.utils.UploadFile;
-import com.example.bdhv_itclub.utils.Utils;
+import com.example.bdhv_itclub.utils.GlobalUtil;
+import com.example.bdhv_itclub.utils.UploadFileUtil;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,279 +38,249 @@ import java.util.stream.Collectors;
 @Service
 public class CourseServiceImpl implements CourseService {
     private final ModelMapper modelMapper;
-    private final UploadFile uploadFile;
-    private final CoursesRepository coursesRepository;
-    private final CategoryRepository categoryRepository;
+    private final UploadFileUtil uploadFile;
+    private final CourseRepository courseRepository;
+    private final CourseCategoryRepository courseCategoryRepository;
     private final LessonRepository lessonRepository;
     private final VideoRepository videoRepository;
 
-    public CourseServiceImpl(ModelMapper modelMapper, UploadFile uploadFile, CoursesRepository coursesRepository, CategoryRepository categoryRepository, LessonRepository lessonRepository, VideoRepository videoRepository) {
+    public CourseServiceImpl(ModelMapper modelMapper, UploadFileUtil uploadFile, CourseRepository courseRepository, CourseCategoryRepository courseCategoryRepository, LessonRepository lessonRepository, VideoRepository videoRepository) {
         this.modelMapper = modelMapper;
         this.uploadFile = uploadFile;
-        this.coursesRepository = coursesRepository;
-        this.categoryRepository = categoryRepository;
+        this.courseRepository = courseRepository;
+        this.courseCategoryRepository = courseCategoryRepository;
         this.lessonRepository = lessonRepository;
         this.videoRepository = videoRepository;
     }
 
-    @Override
-    public List<CourseReturnHomePageResponse> getCourseIntoHomePage(Integer categoryId) {
-        List<Courses> listCourses = null;
-
-        if (categoryId == null) {
-            listCourses = coursesRepository.findAll();
-        } else {
-            // Kiểm tra nếu categoryId không tồn tại thì báo lỗi
-            Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new NotFoundException("Course ID: " + categoryId + " không tồn tại"));
-
-            listCourses = coursesRepository.findAllByCategoryId(categoryId);
-        }
-
-        // Map qua từng phần tử của listCourses, formatted lại dữ liệu
-        return listCourses.stream().map(courses -> {
-            // Mapper dữ liêu course qua dữ liệu muốn trả về
-            CourseReturnHomePageResponse response = modelMapper.map(courses, CourseReturnHomePageResponse.class);
-            // Tính toán các số liệu
-            int totalReview = courses.getListReviews().size();
-            int totalRating = courses.getListReviews().stream().mapToInt(Review::getRating).sum();
-            double averageRating = (double) totalRating / totalReview;
-            averageRating = Math.round(averageRating * 10.0) / 10.0;
-            response.setTotalReview(totalReview);
-            response.setAverageReview(averageRating);
-            return response;
-        }).toList();
-    }
-
-    @Override
-    public CourseReturnDetailPageResponse getCourseDetail(String slug) {
-        Courses course = coursesRepository.findBySlug(slug).orElseThrow(() -> new NotFoundException("Course slug không tồn tại"));
-
-        CourseReturnDetailPageResponse response = modelMapper.map(course, CourseReturnDetailPageResponse.class);
-        sortChapterAndLesson(response);
-        return response;
-    }
-
-    @Override
-    public List<CourseReturnSearch> listAllCourseByKeyword(String keyword) {
-        List<Courses> listCourses = coursesRepository.search(keyword);
-
-        return listCourses.stream().map(courses -> {
-            CourseReturnSearch response = modelMapper.map(courses, CourseReturnSearch.class);
-            int totalReview = courses.getListReviews().size();
-            int totalRating = courses.getListReviews().stream().mapToInt(Review::getRating).sum();
-            double averageRating = (double) totalRating / totalReview;
-            averageRating = Math.round(averageRating * 10.0) / 10.0;
-            response.setAverageReview(averageRating);
-            return response;
-        }).toList();
-    }
-
-    @Override
-    public List<CourseResponse> getAll() {
-        List<Courses> coursesList = coursesRepository.findAll();
-        return coursesList.stream().map(this::convertToCourseResponse).toList();
-    }
-
-    @Override
-    public String updateIsEnabled(Integer courseId, boolean isEnabled) {
-        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
-
-        coursesRepository.switchEnabled(courseId, isEnabled);
-
-        return "SUCCESS";
-    }
-
-    @Override
-    public String updateIsPublished(Integer courseId, boolean isPublished) {
-        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
-
-        coursesRepository.switchPublished(courseId, isPublished);
-        return "SUCCESS";
-    }
-
-    @Override
-    public String updateIsFinished(Integer courseId, boolean isFinished) {
-        Courses courses = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Courses ID không tồn tại"));
-
-        coursesRepository.switchFinished(courseId, isFinished);
-        return "SUCCESS";
-    }
-
-    @Override
-    public CourseResponse create(CoursesRequest coursesRequest, MultipartFile image) {
-        if (coursesRepository.existsCoursesByTitle(coursesRequest.getTitle())) {
-            throw new ConflictException("Tên khóa học đã tồn tại!");
-        }
-
-        if (coursesRepository.existsCoursesBySlug(coursesRequest.getSlug())) {
-            throw new ConflictException("Slug khóa học đã tồn tại!");
-        }
-
-        Category category = categoryRepository.findById(coursesRequest.getCategoryId()).orElseThrow(() -> new NotFoundException("Category ID không tồn tại"));
-
-        Courses courses = new Courses();
-
-        convertSomeAttributeToEntity(courses, coursesRequest);
-
-
-        String thumbnail = uploadFile.uploadFileOnCloudinary(image);
-        courses.setThumbnail(thumbnail);
-
-
-        courses.setCategory(category);
-
-        for (CourseInfoRequest request : coursesRequest.getInfoList()) {
-            courses.addInfoList(request.getValue(), InformationType.valueOf(request.getType()));
-        }
-
-        Courses savedCourse = coursesRepository.save(courses);
-
-        return modelMapper.map(savedCourse, CourseResponse.class);
-    }
-
+    // Ok
     @Override
     public CourseResponse get(Integer courseId) {
-        Courses course = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Category ID không tồn tại"));
-
-        CourseResponse response = modelMapper.map(course, CourseResponse.class);
-        sortChapterAndLesson(response);
-        return response;
-    }
-
-    @Override
-    public CourseResponse update(Integer courseId, CoursesRequest coursesRequest, MultipartFile img) {
-        Courses courseInDB = coursesRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Course ID không tồn tại"));
-
-        Category categoryInDB = categoryRepository.findById(coursesRequest.getCategoryId()).orElseThrow(() -> new NotFoundException("Category ID không tồn tại"));
-
-        Courses courses = coursesRepository.findByTitleOrSlug(coursesRequest.getTitle(), coursesRequest.getSlug());
-
-        if (courses != null) {
-            if (!Objects.equals(courses.getId(), courseInDB.getId())) {
-                throw new ConflictException("Tên/Slug khóa học đã tồn tại trước đó");
-            }
-        }
-
-        if (img != null) {
-            uploadFile.deleteImageInCloudinary(courseInDB.getThumbnail());
-            String url = uploadFile.uploadFileOnCloudinary(img);
-            courseInDB.setThumbnail(url);
-        }
-
-        convertSomeAttributeToEntity(courseInDB, coursesRequest);
-
-        courseInDB.setCategory(categoryInDB);
-
-        List<CourseInfo> infoList = new ArrayList<>();
-
-        for (CourseInfoRequest request : coursesRequest.getInfoList()) {
-            CourseInfo info = null;
-            if (request.getId() != null) {
-                info = new CourseInfo(request.getId(), request.getValue(), InformationType.valueOf(request.getType()), courseInDB);
-            } else {
-                info = new CourseInfo(request.getValue(), InformationType.valueOf(request.getType()), courseInDB);
-            }
-            infoList.add(info);
-        }
-
-        courseInDB.setInfoList(infoList);
-
-        Courses savedCourse = coursesRepository.save(courseInDB);
-
-        return modelMapper.map(savedCourse, CourseResponse.class);
-    }
-
-    private CourseResponse convertToCourseResponse(Courses course) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
         CourseResponse courseResponse = modelMapper.map(course, CourseResponse.class);
-        int totalReview = course.getListReviews().size();
-        int totalRating = course.getListReviews().stream().mapToInt(Review::getRating).sum();
-        double averageRating = (double) totalRating / totalReview;
-        averageRating = Math.round(averageRating * 10.0) / 10.0;
-        courseResponse.setTotalReview(totalReview);
-        courseResponse.setAverageReview(averageRating);
-        courseResponse.setChapterList(null);
-        courseResponse.setInfoList(null);
+        sortChapterAndLesson(courseResponse);
         return courseResponse;
     }
 
-    private void convertSomeAttributeToEntity(Courses courses, CoursesRequest request) {
-        courses.setTitle(request.getTitle());
-        String slug = Utils.removeVietnameseAccents(request.getTitle());
-        courses.setSlug(slug);
-        courses.setDescription(request.getDescription());
-        courses.setPrice(request.getPrice());
-        courses.setDiscount(request.getDiscount());
-        courses.setEnabled(request.isEnabled());
-        courses.setPublished(request.isPublished());
-        courses.setFinished(request.isFinished());
-        if (request.isPublished()) {
-            courses.setPublishedAt(Instant.now());
+    // Ok
+    @Override
+    public Page<CourseResponseForHomePage> getCoursesForHomePageAndByCategoryId(Integer categoryId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Course> coursePage;
+        if (categoryId == null) {
+            coursePage = courseRepository.findEnabledExcludeDeletedCategory(pageable);
+        } else {
+            courseCategoryRepository.findActiveById(categoryId)
+                    .orElseThrow(() -> new NotFoundException("Mã danh mục khóa học không tồn tại hoặc ở trạng thái bị xóa"));
+            coursePage = courseRepository.findEnabledByCategoryIdExcludeDeletedCategory(categoryId, pageable);
+        }
+
+        Page<CourseResponseForHomePage> mappedPage = coursePage.map(course -> {
+            CourseResponseForHomePage response = modelMapper.map(course, CourseResponseForHomePage.class);
+            int totalReview = course.getReviews().size();
+            int totalRating = course.getReviews().stream().mapToInt(Review::getRating).sum();
+            double averageRating = totalReview == 0 ? 0.0 : Math.round((double) totalRating / totalReview * 10.0) / 10.0;
+            response.setTotalReview(totalReview);
+            response.setAverageReview(averageRating);
+            return response;
+        });
+        return mappedPage;
+    }
+
+    // Ok
+    @Override
+    public CourseResponseForDetailPage getCourseForDetailPage(String slug) {
+        Course course = courseRepository.findEnabledAndCategoryActiveBySlug(slug).orElseThrow(() -> new NotFoundException("Slug của khóa học không tồn tại hoặc khóa học bị ẩn"));
+        CourseResponseForDetailPage courseResponseForDetailPage = modelMapper.map(course, CourseResponseForDetailPage.class);
+        sortChapterAndLesson(courseResponseForDetailPage);
+        return courseResponseForDetailPage;
+    }
+
+    // Ok
+    @Override
+    public Page<CourseResponse> getAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return courseRepository.findAll(pageable).map(this::convertToCourseResponse);
+    }
+
+    // Ok
+    @Override
+    public Page<CourseResponseForSearching> getAllByKeyword(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Course> courses = courseRepository.search(keyword, pageable);
+        return courses.map(course -> {
+            CourseResponseForSearching courseResponseForSearching = modelMapper.map(course, CourseResponseForSearching.class);
+            int totalReview = course.getReviews().size();
+            int totalRating = course.getReviews().stream().mapToInt(Review::getRating).sum();
+            double averageRating = (double) totalRating / totalReview;
+            averageRating = Math.round(averageRating * 10.0) / 10.0;
+            courseResponseForSearching.setAverageReview(averageRating);
+            return courseResponseForSearching;
+        });
+    }
+
+    // Ok
+    @Override
+    public CourseResponse create(CourseRequest courseRequest, MultipartFile courseThumbnail) {
+        if (courseRepository.existsByTitle(courseRequest.getTitle())) {
+            throw new ConflictException("Tên khóa học đã tồn tại");
+        }
+        if (courseRepository.existsBySlug(courseRequest.getSlug())) {
+            throw new ConflictException("Slug khóa học đã tồn tại");
+        }
+        CourseCategory courseCategory = courseCategoryRepository.findActiveById(courseRequest.getCategoryId()).orElseThrow(() -> new NotFoundException("Mã danh mục khóa học không tồn tại hoặc ở trạng thái xóa"));
+        Course course = new Course();
+        convertSomeAttributeToEntity(course, courseRequest);
+
+        String thumbnail = uploadFile.uploadFileOnCloudinary(courseThumbnail);
+        course.setThumbnail(thumbnail);
+        course.setCategory(courseCategory);
+        for (CourseInformationRequest request : courseRequest.getCourseInformations()) {
+            course.addCourseInformations(request.getValue(), CourseInformationType.valueOf(request.getType()));
+        }
+        Course savedCourse = courseRepository.save(course);
+        return modelMapper.map(savedCourse, CourseResponse.class);
+    }
+
+    // Ok
+    @Override
+    public CourseResponse update(Integer courseId, CourseRequest courseRequest, MultipartFile courseThumbnail) {
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
+        CourseCategory courseCategory = courseCategoryRepository.findActiveById(courseRequest.getCategoryId()).orElseThrow(() -> new NotFoundException("Mã danh mục khóa học không tồn tại hoặc ở trạng thái bị xóa"));
+
+        Course checkDuplicatedCourse = courseRepository.findByTitleOrSlug(courseRequest.getTitle(), courseRequest.getSlug());
+        if (checkDuplicatedCourse != null) {
+            if (!Objects.equals(checkDuplicatedCourse.getId(), course.getId())) {
+                throw new ConflictException("Tên hoặc slug của khóa học đã tồn tại trước đó");
+            }
+        }
+        if (courseThumbnail != null) {
+            uploadFile.deleteImageInCloudinary(course.getThumbnail());
+            String url = uploadFile.uploadFileOnCloudinary(courseThumbnail);
+            course.setThumbnail(url);
+        }
+        convertSomeAttributeToEntity(course, courseRequest);
+        course.setCategory(courseCategory);
+
+        List<CourseInformation> courseInformations = new ArrayList<>();
+
+        for (CourseInformationRequest request : courseRequest.getCourseInformations()) {
+            CourseInformation courseInformation = null;
+            if (request.getId() != null) {
+                courseInformation = new CourseInformation(request.getId(), request.getValue(), CourseInformationType.valueOf(request.getType()), course);
+            } else {
+                courseInformation = new CourseInformation(request.getValue(), CourseInformationType.valueOf(request.getType()), course);
+            }
+            courseInformations.add(courseInformation);
+        }
+        course.setCourseInformations(courseInformations);
+        Course savedCourse = courseRepository.save(course);
+        return modelMapper.map(savedCourse, CourseResponse.class);
+    }
+
+    // Ok
+    @Override
+    public String updateIsEnabled(Integer courseId, boolean isEnabled) {
+        courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
+        courseRepository.switchEnabled(courseId, isEnabled);
+        return "Đổi trạng thái khóa học thành công";
+    }
+
+    // Ok
+    @Override
+    public String updateIsPublished(Integer courseId, boolean isPublished) {
+        courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
+        courseRepository.switchPublished(courseId, isPublished);
+        return "Đổi trạng thái xuất bản thành công";
+    }
+
+    // Ok
+    @Override
+    public String updateIsFinished(Integer courseId, boolean isFinished) {
+        courseRepository.findById(courseId).orElseThrow(() -> new NotFoundException("Mã khóa học không tồn tại"));
+        courseRepository.switchFinished(courseId, isFinished);
+        return "Đổi trạng thái kết thúc thành công";
+    }
+
+    // Ok
+    private CourseResponse convertToCourseResponse(Course course) {
+        CourseResponse courseResponse = modelMapper.map(course, CourseResponse.class);
+        int totalReview = course.getReviews().size();
+        int totalRating = course.getReviews().stream().mapToInt(Review::getRating).sum();
+        double averageRating = totalReview == 0 ? 0.0 : Math.round((double) totalRating / totalReview * 10) / 10.0;
+        courseResponse.setTotalReview(totalReview);
+        courseResponse.setAverageReview(averageRating);
+        courseResponse.setCourseChapters(null);
+        courseResponse.setCourseInformations(null);
+        return courseResponse;
+    }
+
+    // Ok
+    private void convertSomeAttributeToEntity(Course course, CourseRequest courseRequest) {
+        course.setTitle(courseRequest.getTitle());
+        String slug = GlobalUtil.convertToSlug(courseRequest.getTitle());
+        course.setSlug(slug);
+        course.setDescription(courseRequest.getDescription());
+        course.setPrice(courseRequest.getPrice());
+        course.setDiscount(courseRequest.getDiscount());
+        course.setEnabled(courseRequest.isEnabled());
+        course.setPublished(courseRequest.isPublished());
+        course.setFinished(courseRequest.isFinished());
+        if (courseRequest.isPublished()) {
+            course.setPublishedAt(Instant.now());
         }
     }
 
-    private void sortChapterAndLesson(CourseResponse response) {
-        int totalLessonInCourse = 0;
-        List<ChapterDTO> chapterList = response.getChapterList();
-        response.setTotalChapter(chapterList.size());
-        chapterList.sort(Comparator.comparingInt(ChapterDTO::getOrders));
-        for (ChapterDTO chapterDTO : chapterList) {
-            List<LessonResponse> listLesson = chapterDTO.getLessonList();
-            listLesson.sort(Comparator.comparingInt(LessonResponse::getOrders));
-            totalLessonInCourse += listLesson.size();
-            chapterDTO.setTotalLesson(listLesson.size());
+    // Ok
+    private void sortChapterAndLesson(CourseResponse courseResponse) {
+        int totalCourseLesson = 0;
+        List<CourseChapterDTO> chapters = courseResponse.getCourseChapters();
+        courseResponse.setTotalChapter(chapters.size());
+        chapters.sort(Comparator.comparingInt(CourseChapterDTO::getChapterOrder));
+        for (CourseChapterDTO chapterDTO : chapters) {
+            List<LessonResponse> lessons = chapterDTO.getLessons();
+            lessons.sort(Comparator.comparingInt(LessonResponse::getLessonOrder));
+            totalCourseLesson += lessons.size();
+            chapterDTO.setTotalLesson(lessons.size());
         }
-        response.setTotalLesson(totalLessonInCourse);
+        courseResponse.setTotalLesson(totalCourseLesson);
     }
 
-    // Hàm sắp xếp lại chapter và lesson theo order
-    private void sortChapterAndLesson(CourseReturnDetailPageResponse response) {
-        int totalLessonInCourse = 0;
+    // Ok
+    private void sortChapterAndLesson(CourseResponseForDetailPage courseResponseForDetailPage) {
+        int totalCourseLesson = 0;
         Duration duration = Duration.ZERO;
-
-        // Lấy ra chapters của course (theo DTO)
-        List<ChapterReturnDetailResponse> chapterList = response.getChapterList().stream().map(chapter -> modelMapper.map(chapter, ChapterReturnDetailResponse.class)).collect(Collectors.toList());
-        // Set số lượng chapter
-        response.setTotalChapter(chapterList.size());
-        // sort lại chapter theo order
-        chapterList.sort(Comparator.comparingInt(ChapterReturnDetailResponse::getOrders));
+        List<CourseChapterResponseForDetailPage> chapters = courseResponseForDetailPage.getCourseChapters().stream().map(chapter -> modelMapper.map(chapter, CourseChapterResponseForDetailPage.class)).collect(Collectors.toList());
+        courseResponseForDetailPage.setTotalChapter(chapters.size());
+        chapters.sort(Comparator.comparingInt(CourseChapterResponseForDetailPage::getChapterOrder));
         int i = 1;
-        for (ChapterReturnDetailResponse chapter : chapterList) {
-            // Lây ra lessons của chapter đó
-            List<LessonReturnDetailResponse> listLesson = chapter.getLessonList();
-            // Sort lại lesson theo order
-            listLesson.sort(Comparator.comparingInt(LessonReturnDetailResponse::getOrders));
-            // Lặp lại lesson
-            for (LessonReturnDetailResponse lesson : listLesson) {
-                // Nếu mà type lesson đó là dạng video
+        for (CourseChapterResponseForDetailPage chapter : chapters) {
+            List<LessonResponseForDetailPage> lessons = chapter.getLessons();
+            lessons.sort(Comparator.comparingInt(LessonResponseForDetailPage::getLessonOrder));
+            for (LessonResponseForDetailPage lesson : lessons) {
                 if (lesson.getLessonType().equals(LessonType.VIDEO)) {
                     Lesson lessonInDB = lessonRepository.findById(lesson.getId()).get();
                     Video video = videoRepository.findById(lessonInDB.getVideo().getId()).get();
-                    // Gán thời lượng là = thời lượng video
                     lesson.setDuration(video.getDuration());
-
-                    // Tính toán thời lượng video
                     duration = duration.plus(Duration.ofMinutes(video.getDuration().getMinute()).plusSeconds(video.getDuration().getSecond()));
                 } else {
-                    // Nếu type lesson không phải là dạng video thì mặc định sẽ gán duration là 1 phút
                     LocalTime time = LocalTime.of(0, 1, 0);
                     lesson.setDuration(time);
                     duration = duration.plus(Duration.ofMinutes(1));
                 }
-                lesson.setOrders(i);
+                lesson.setLessonOrder(i);
                 ++i;
             }
-            // Gán tổng số bài học của 1 chapter
-            totalLessonInCourse += listLesson.size();
-            chapter.setTotalLesson(listLesson.size());
+            totalCourseLesson += lessons.size();
+            chapter.setTotalLesson(lessons.size());
         }
 
-        long hours = duration.toHours(); // Lấy tổng giờ
-        long minutes = duration.toMinutes(); // Lấy tổng số phút
-        long seconds = duration.minusMinutes(minutes).getSeconds(); // Lấy số giây còn lại sau khi lấy tổng số phút
+        long hours = duration.toHours();
+        long minutes = duration.toMinutes();
+        long seconds = duration.minusMinutes(minutes).getSeconds();
 
-        // Tạo LocalTime từ số phút và số giây
         LocalTime localTime = LocalTime.of((int) hours, (int) minutes, (int) seconds);
-        response.setTotalTime(localTime);
-        response.setTotalLesson(totalLessonInCourse);
+        courseResponseForDetailPage.setTotalTime(localTime);
+        courseResponseForDetailPage.setTotalLesson(totalCourseLesson);
     }
 }

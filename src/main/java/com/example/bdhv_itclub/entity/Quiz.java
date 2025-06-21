@@ -1,9 +1,8 @@
 package com.example.bdhv_itclub.entity;
 
+import com.example.bdhv_itclub.constant.QuizType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,9 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "quizzes")
+@Table(name = "quiz")
 public class Quiz {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -34,20 +32,17 @@ public class Quiz {
     private Contest contest;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Answer> answerList = new ArrayList<>();
+    private List<QuizAnswer> answers = new ArrayList<>();
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecordDetail> listRecordDetail = new ArrayList<>();
+    private List<RecordDetail> recordDetails = new ArrayList<>();
 
     public Quiz(Quiz quiz, Lesson lesson) {
         this.question = quiz.getQuestion();
         this.quizType = quiz.getQuizType();
         this.lesson = lesson;
-//        for (Answer answer : quiz.getAnswerList()){
-//            add(answer.getContent(), answer.isCorrect());
-//        }
-        quiz.getAnswerList().forEach(answer -> {
-            add(answer.getContent(), answer.isCorrect());
+        quiz.getAnswers().forEach(answer -> {
+            addAnAnswer(answer.getContent(), answer.isCorrect());
         });
     }
 
@@ -55,23 +50,19 @@ public class Quiz {
         this.question = quiz.getQuestion();
         this.quizType = quiz.getQuizType();
         this.contest = contest;
-//        for (Answer answer : quiz.getAnswerList()){
-//            add(answer.getContent(), answer.isCorrect());
-//        }
-        quiz.getAnswerList().forEach(answer -> {
-            add(answer.getContent(), answer.isCorrect());
+        quiz.getAnswers().forEach(answer -> {
+            addAnAnswer(answer.getContent(), answer.isCorrect());
         });
     }
 
-    public void add(String content, boolean isCorrect){
-        answerList.add(new Answer(content, isCorrect, this));
+    public void addAnAnswer(String content, boolean isCorrect) {
+        answers.add(new QuizAnswer(content, isCorrect, this));
     }
 
-    public void setAnswerList(List<Answer> answerList) {
-        if(answerList != null && !answerList.isEmpty()){
-            this.answerList.clear();
-            this.answerList.addAll(answerList);
+    public void setAnswers(List<QuizAnswer> answers) {
+        if(answers != null && !answers.isEmpty()) {
+            this.answers.clear();
+            this.answers.addAll(answers);
         }
     }
-
 }

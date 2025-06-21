@@ -15,17 +15,6 @@ services:
     networks:
       - bdhv-network-local
 
-  # Redis Cache Service
-  cache:
-    image: redis:6-alpine
-    container_name: Redis_Cache
-    ports:
-      - "6379:6379"
-    networks:
-      - bdhv-network-local
-    volumes:
-      - redis_data:/data
-
 #  # Backend Service
 #  backend:
 #    build: .

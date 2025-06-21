@@ -1,15 +1,18 @@
 package com.example.bdhv_itclub.controller;
 
-import com.example.bdhv_itclub.dto.reponse.ListReviewResponse;
+
+import com.example.bdhv_itclub.dto.reponse.ReviewListResponse;
 import com.example.bdhv_itclub.dto.request.ReviewRequest;
 import com.example.bdhv_itclub.service.ReviewService;
-import com.example.bdhv_itclub.utils.ApiMessage;
+import com.example.bdhv_itclub.utils.annotation.APIResponseMessage;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/reviews")
+@RequestMapping("/api/review")
 public class ReviewController {
     private final ReviewService reviewService;
 
@@ -17,41 +20,59 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @PostMapping("/create")
-    @ApiMessage("Create a review")
-    public ResponseEntity<?> create(@RequestBody @Valid ReviewRequest reviewRequest){
-        return ResponseEntity.ok(reviewService.createReview(reviewRequest));
-    }
-
-    @DeleteMapping("/delete/{id}")
-    @ApiMessage("Delete the review")
-    public ResponseEntity<?> delete(@PathVariable(value = "id") Integer reviewId){
-        return ResponseEntity.ok(reviewService.deleteReview(reviewId));
-    }
-
-    @GetMapping("/get-all/course/{id}")
-    @ApiMessage("Get all reviews by course id")
-    public ResponseEntity<?> listByCourse(@PathVariable(value = "id") Integer courseId){
-        ListReviewResponse listReviewResponse = reviewService.listAllByCourse(courseId);
-        if(listReviewResponse.getListResponses().isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(listReviewResponse);
-    }
-
+    // Ok
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/get-all")
-    @ApiMessage("List all reviews")
-    public ResponseEntity<?> list(){
-        ListReviewResponse listReviewResponse = reviewService.listAll();
-        if(listReviewResponse.getListResponses().isEmpty()){
+    @APIResponseMessage("Liệt kê tất cả đánh giá")
+    public ResponseEntity<?> listAll() {
+        ReviewListResponse reviewsResponse = reviewService.listAll();
+        if(reviewsResponse.getReviewResponses().isEmpty()) {
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(listReviewResponse);
+        return ResponseEntity.ok(reviewsResponse);
     }
 
+    // Ok
+    @GetMapping("/get-all/course/{id}")
+    @APIResponseMessage("Lấy tất cả đánh giá theo mã khóa học")
+    public ResponseEntity<?> listByCourse(
+            @PathVariable(value = "id") Integer courseId
+    ) {
+        ReviewListResponse reviewsResponse = reviewService.listAllByCourse(courseId);
+        if(reviewsResponse.getReviewResponses().isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(reviewsResponse);
+    }
+
+    // Ok
+    @PostMapping("/create")
+    @APIResponseMessage("Thêm đánh giá")
+    public ResponseEntity<?> create(
+            @RequestBody @Valid ReviewRequest reviewRequest,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(reviewService.createReview(reviewRequest, email));
+    }
+
+    // Ok
+    @DeleteMapping("/delete/{id}")
+    @APIResponseMessage("Xóa đánh giá")
+    public ResponseEntity<?> delete(
+            @PathVariable(value = "id") Integer reviewId,
+            Authentication authentication
+    ) {
+        String email = authentication.getName();
+        return ResponseEntity.ok(reviewService.deleteReview(reviewId, email));
+    }
+
+    // Ok
     @GetMapping("/check-reviewed/user/{user_id}/course/{course_id}")
-    public ResponseEntity<?> checkReviewed(@PathVariable(value = "user_id") Integer userId,
-                                           @PathVariable(value = "course_id") Integer courseId){
-        return ResponseEntity.ok(reviewService.checkCustomerToReviewed(userId, courseId));
+    public ResponseEntity<?> checkReviewed(
+            @PathVariable(value = "user_id") Integer userId,
+            @PathVariable(value = "course_id") Integer courseId
+    ) {
+        return ResponseEntity.ok(reviewService.checkReviewedByCourse(userId, courseId));
     }
 }

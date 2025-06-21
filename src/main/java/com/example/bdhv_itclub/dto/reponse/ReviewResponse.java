@@ -11,27 +11,26 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReviewResponse {
-
     private Integer id;
 
     private String comment;
 
     private int rating;
 
-    @JsonProperty("time_formatted")
-    private String timeFormatted;
+    @JsonProperty("formatted_time")
+    private String formattedTime;
 
     @JsonProperty("user_id")
     private Integer userId;
 
     private String username;
 
-    @JsonProperty("photo_user")
-    private String photoUser;
+    @JsonProperty("user_photo")
+    private String userPhoto;
 
     @JsonProperty("course_id")
     private Integer courseId;
 
-    @JsonProperty("title_course")
-    private String titleCourse;
+    @JsonProperty("course_title")
+    private String courseTitle;
 }

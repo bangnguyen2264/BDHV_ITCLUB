@@ -17,13 +17,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LessonRequestInQuiz {
-
     @JsonProperty("lesson_id")
-    @NotNull(message = "Lesson id can not be null")
+    @NotNull(message = "Mã bài học không được để trống")
     private Integer id;
 
-    @JsonProperty("list_quizzes")
+    @JsonProperty("quizzes")
     @Valid
-    @NotEmpty(message = "List quiz can not be empty")
-    private List<QuizLearningRequest> listQuizzes = new ArrayList<>();
+    @NotEmpty(message = "Danh sách câu hỏi không được để trống")
+    private List<QuizLearningRequest> quizzes = new ArrayList<>();
 }

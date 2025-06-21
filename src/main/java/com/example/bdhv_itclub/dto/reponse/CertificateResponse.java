@@ -13,14 +13,13 @@ import java.time.Instant;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CertificateResponse {
-
     private Integer id;
 
     @JsonProperty("achieved_time")
     private Instant achievedTime;
 
-    @JsonProperty("title_course")
-    private String titleCourse;
+    @JsonProperty("course_title")
+    private String courseTitle;
 
     @JsonProperty("student_name")
     private String studentName;

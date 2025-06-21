@@ -50,7 +50,6 @@ public class AuthenticateService {
                 .orElseThrow(() -> new NotFoundException("Not found role "+request.getRole()));
         User user = User.builder()
                 .fullName(request.getFullName())
-                .dob(request.getDob())
                 .email(request.getEmail())
                 .role(role)
                 .password(passwordEncoder.encode(request.getPassword()))

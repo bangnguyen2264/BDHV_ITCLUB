@@ -1,21 +1,18 @@
 package com.example.bdhv_itclub.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.time.Instant;
 import java.util.ArrayList;
+import java.time.Instant;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "contests")
+@Table(name = "contest")
 public class Contest {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -32,23 +29,23 @@ public class Contest {
     private Instant createdAt;
 
     @OneToMany(mappedBy = "contest", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Quiz> listQuizzes = new ArrayList<>();
+    private List<Quiz> quizzes = new ArrayList<>();
 
     @OneToMany(mappedBy = "contest", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Record> listRecords = new ArrayList<>();
-
-    public void add(Quiz quiz){
-        this.listQuizzes.add(new Quiz(quiz, this));
-    }
-
-    public void setQuizList(List<Quiz> quizList) {
-        if(quizList != null && !quizList.isEmpty()){
-            this.listQuizzes.clear();
-            this.listQuizzes.addAll(quizList);
-        }
-    }
+    private List<Records> records = new ArrayList<>();
 
     public Contest(String title) {
         this.title = title;
+    }
+
+    public void setQuizzes(List<Quiz> quizzes) {
+        if (quizzes != null && !quizzes.isEmpty()) {
+            this.quizzes.clear();
+            this.quizzes.addAll(quizzes);
+        }
+    }
+
+    public void addAQuiz(Quiz quiz) {
+        this.quizzes.add(new Quiz(quiz, this));
     }
 }

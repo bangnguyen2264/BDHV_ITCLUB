@@ -15,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContestResponse {
-
     private Integer id;
 
     private String title;
@@ -27,11 +26,11 @@ public class ContestResponse {
 
     private boolean enabled;
 
-    @JsonProperty("number_question")
-    private int numberQuestion;
+    @JsonProperty("number_of_question")
+    private int numberOfQuestion;
 
     @JsonProperty("number_of_joined")
     private int numberOfJoined;
 
-    private List<QuizResponse> listQuizzes = new ArrayList<>();
+    private List<QuizResponse> quizzes = new ArrayList<>();
 }

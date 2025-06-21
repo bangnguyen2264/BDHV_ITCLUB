@@ -15,22 +15,21 @@ import org.hibernate.validator.constraints.Length;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LessonRequest {
-
     private Integer id;
 
-    @NotEmpty(message = "Lesson name can not be empty")
-    @Length(min = 10, max = 100, message = "Lesson name must have 10 - 100 characters")
+    @NotEmpty(message = "Tên bài học không được để trống")
+    @Length(min = 10, max = 100, message = "Tên bài học phải từ 10-100 ký tự")
     private String name;
 
-    @NotEmpty(message = "Lesson type can not be empty")
+    @NotEmpty(message = "Loại bài học không được để trống")
     @Pattern(
         regexp = "^(VIDEO|QUIZ|TEXT)$",
-            message = "Lesson info type must be one of: video, quiz, text"
+        message = "Loại bài học phải là 1 trong 3 loại: video, quiz, text"
     )
     @JsonProperty("lesson_type")
     private String lessonType;
 
-    @NotNull(message = "Chapter id can not be null")
+    @NotNull(message = "Mã chương học không được để trống")
     @JsonProperty("chapter_id")
     private Integer chapterId;
 
@@ -40,5 +39,6 @@ public class LessonRequest {
     @JsonProperty("text_id")
     private Integer textId;
 
-    private int orders;
+    @JsonProperty("lesson_order")
+    private int lessonOrder;
 }

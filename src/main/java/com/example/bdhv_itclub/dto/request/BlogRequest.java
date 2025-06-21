@@ -13,20 +13,18 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BlogRequest {
-
     private Integer id;
 
-    @NotEmpty(message = "Title can not be empty")
+    @NotEmpty(message = "Tiêu đề bài đăng không được để trống")
     private String title;
 
-    @NotEmpty(message = "Description can not be empty")
+    @NotEmpty(message = "Mô tả bài đăng không được để trống")
     private String description;
 
-    @NotEmpty(message = "Content can not be empty")
+    @NotEmpty(message = "Nội dung bài đăng không được để trống")
     private String content;
 
-    @NotNull(message = "User ID can not be null")
+    @NotNull(message = "Mã người dùng không được để trống")
     @JsonProperty("user_id")
     private Integer userId;
-
 }
