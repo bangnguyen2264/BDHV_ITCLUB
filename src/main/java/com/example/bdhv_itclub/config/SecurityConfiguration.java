@@ -83,7 +83,8 @@ public class SecurityConfiguration {
                 "/webjars/**",
                 "/api/public/**",
                 "/oauth2/**",
-                "/login/**"
+                "/login/**",
+                "/hello"
         };
     }
 
