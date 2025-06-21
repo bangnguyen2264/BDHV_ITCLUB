@@ -37,7 +37,7 @@ public class UserResponse {
 
     private CommonStatus status;
 
-    private Role role;
+    private String role;
 
     public static UserResponse fromUser(User user) {
         return UserResponse.builder()
@@ -50,7 +50,7 @@ public class UserResponse {
                 .createdTime(user.getCreatedTime())
                 .enabled(user.isEnabled())
                 .status(user.getStatus())
-                .role(user.getRole())
+                .role(user.getRole().getName())
                 .build();
     }
 }
