@@ -89,7 +89,7 @@ public class BlogServiceImpl implements BlogService {
     public String checkBlogAuthor(Integer blogId, Integer userId) {
         Blog blog = blogRepository.findByIdAndIsApprovedTrue(blogId).orElseThrow(() -> new NotFoundException("Mã bài đăng không tồn tại hoặc bài đăng chưa được duyệt"));
         if (!Objects.equals(userId, blog.getUser().getId())) {
-            throw new CustomizeException("Chức năng này chỉ dành cho tác giả bài viết", HttpStatus.FORBIDDEN);
+            throw new AccessDeniedException("Chức năng này chỉ dành cho tác giả bài viết");
         }
         return "SUCCESS";
     }
@@ -99,7 +99,7 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponse save(String email, BlogRequest blogRequest, MultipartFile blogThumbnail) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("Email không tồn tại"));
         if (blogRepository.existsByTitle(blogRequest.getTitle())) {
-            throw new CustomizeException("Tên bài đăng này đã tồn tại", HttpStatus.CONFLICT);
+            throw new ConflictException("Tên bài đăng này đã tồn tại");
         }
         Blog blog = modelMapper.map(blogRequest, Blog.class);
         blog.setUser(user);
@@ -107,7 +107,7 @@ public class BlogServiceImpl implements BlogService {
 
         String slug = GlobalUtil.convertToSlug(blogRequest.getTitle());
         if (blogRepository.existsBySlug(slug)) {
-            throw new CustomizeException("Vui lòng thay đổi tên bài đăng", HttpStatus.CONFLICT);
+            throw new ConflictException("Vui lòng thay đổi tên bài đăng");
         }
         blog.setSlug(slug);
         String thumbnail = uploadFile.uploadFileOnCloudinary(blogThumbnail);
@@ -123,7 +123,7 @@ public class BlogServiceImpl implements BlogService {
     public BlogResponse update(String email, Integer blogId, BlogRequest blogRequest, MultipartFile blogThumbnail) {
         Blog blog = blogRepository.findByIdAndIsApprovedTrue(blogId).orElseThrow(() -> new NotFoundException("Mã bài đăng không tồn tại hoặc bài đăng chưa được duyệt"));
         if (!Objects.equals(email, blog.getUser().getEmail())) {
-            throw new CustomizeException("Chức năng này chỉ dành cho tác giả bài viết", HttpStatus.FORBIDDEN);
+            throw new AccessDeniedException("Chức năng này chỉ dành cho tác giả bài viết");
         }
 
         String slug = GlobalUtil.convertToSlug(blogRequest.getTitle());
@@ -131,7 +131,7 @@ public class BlogServiceImpl implements BlogService {
         Blog checkDuplicatedBlog = blogRepository.findByTitleOrSlug(blogRequest.getTitle(), slug);
         if (checkDuplicatedBlog != null) {
             if (!(Objects.equals(blog.getId(), checkDuplicatedBlog.getId()))) {
-                throw new CustomizeException("Tên bài đăng hoặc slug đã tồn tại trước đây", HttpStatus.CONFLICT);
+                throw new ConflictException("Tên bài đăng hoặc slug đã tồn tại trước đây");
             }
         }
 

@@ -108,13 +108,13 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<ReportContestResponse> getContestReport() {
         List<Contest> contests = contestRepository.findAll();
-        List<Record> records = recordRepository.findAll();
+        List<Records> records = recordRepository.findAll();
         List<ReportContestResponse> reportContestResponses = new ArrayList<>();
 
         contests.forEach(contest -> {
             ReportContestResponse reportContestResponse = new ReportContestResponse(contest.getTitle());
-            List<Record> filteredRecord = records.stream().filter(record -> record.getContest().getTitle().equals(contest.getTitle())).toList();
-            double totalGrade = filteredRecord.stream().mapToDouble(Record::getGrade).sum();
+            List<Records> filteredRecord = records.stream().filter(record -> record.getContest().getTitle().equals(contest.getTitle())).toList();
+            double totalGrade = filteredRecord.stream().mapToDouble(Records::getGrade).sum();
             float averageGrade = (float) (totalGrade / filteredRecord.size());
             reportContestResponse.setAverageGrade(averageGrade);
             reportContestResponse.setNumberOfJoined(filteredRecord.size());
