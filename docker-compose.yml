@@ -1,4 +1,4 @@
-version: '1.0'
+version: "1.0"
 services:
   # PostgreSQL Database Service
   db:
@@ -15,26 +15,28 @@ services:
     networks:
       - bdhv-network-local
 
-#  # Backend Service
-#  backend:
-#    build: .
-#    container_name: bdhv_server
-#    ports:
-#      - "8081:8081"
-#    environment:
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bdhv
-#      SPRING_DATASOURCE_USERNAME: postgres
-#      SPRING_DATASOURCE_PASSWORD: password
-#    depends_on:
-#      - db
-#    networks:
-#      - bdhv-network-local
+  # Backend Service
+  backend:
+    build: .
+    container_name: bdhv_server
+    ports:
+      - "8888:8888"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/bdhv
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - bdhv-network-local
 
 # Volume for persistent PostgreSQL and Redis storage
 volumes:
   db_data:
-  redis_data:
 
 # Define custom Docker network
 networks:
   bdhv-network-local:
+    driver: bridge

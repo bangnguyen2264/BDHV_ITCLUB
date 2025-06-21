@@ -63,8 +63,8 @@ spring:
 app:
   security:
     jwt:
-      access-expires-at: 3600000        # 1 giờ
-      refresh-expires-at: 604800000     # 7 ngày
+      access-expires-at: 3600000        
+      refresh-expires-at: 604800000     
       prefix: "Bearer "
       auth-header: "Authorization"
       access-secret: ${JWT_ACCESS_SECRET}
