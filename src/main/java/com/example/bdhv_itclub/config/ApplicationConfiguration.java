@@ -60,7 +60,6 @@ public class ApplicationConfiguration {
                                 .password(passwordEncoder.encode("exampleUser"))
                                 .role(studentRole)
                                 .enabled(true)
-
                                 .build()
                 );
                 log.info("Example user initialized successfully");

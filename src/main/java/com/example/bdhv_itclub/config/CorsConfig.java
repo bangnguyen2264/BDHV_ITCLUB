@@ -32,7 +32,8 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSourceProd() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-                "https://itclub-forum.vercel.app"
+                "https://itclub-forum.vercel.app",
+                "lo"
         ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
